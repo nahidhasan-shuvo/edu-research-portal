@@ -562,7 +562,7 @@ export default function App() {
       <header className="site-header">
         <a className="brand" href="#home" onClick={closeMenu}>
           <span className="brand-mark lab-brand-mark">
-            <img src="/Final.jpg" alt="Data Science & Biochemistry Lab" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+            <img src="/Final.jpg" alt="Data Science & Biochemistry Lab" onError={(e) => { if (!e.currentTarget.dataset.tried) { e.currentTarget.dataset.tried = "1"; e.currentTarget.src = "/final.jpg"; } else if (e.currentTarget.dataset.tried === "1") { e.currentTarget.dataset.tried = "2"; e.currentTarget.src = "/Final.png"; } else if (e.currentTarget.dataset.tried === "2") { e.currentTarget.dataset.tried = "3"; e.currentTarget.src = "/final.png"; } }} /> { e.currentTarget.style.display = "none"; }} />
           </span>
           <span className="brand-name">
             DATA SCIENCE RESEARCH & TRAINING LAB
@@ -2226,7 +2226,7 @@ export default function App() {
           <div className="footer-identity">
             <a className="brand footer-brand" href="#home" onClick={closeMenu}>
               <span className="brand-mark lab-brand-mark">
-                <img src="/Final.jpg" alt="Data Science & Biochemistry Lab" onError={(e)=>{e.currentTarget.style.display="none";}}/>
+                <img src="/Final.jpg" alt="Data Science & Biochemistry Lab" onError={(e) => { if (!e.currentTarget.dataset.tried) { e.currentTarget.dataset.tried = "1"; e.currentTarget.src = "/final.jpg"; } else if (e.currentTarget.dataset.tried === "1") { e.currentTarget.dataset.tried = "2"; e.currentTarget.src = "/Final.png"; } else if (e.currentTarget.dataset.tried === "2") { e.currentTarget.dataset.tried = "3"; e.currentTarget.src = "/final.png"; } }} />{e.currentTarget.style.display="none";}}/>
               </span>
               <span className="brand-name">
                 DATA SCIENCE RESEARCH & TRAINING LAB
