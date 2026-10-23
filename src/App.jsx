@@ -13,6 +13,7 @@ import { useEffect, useRef, useState } from "react";
 import VideoBackground from "./components/VideoBackground.jsx";
 import { notices as defaultNotices } from "./data/notices.js";
 
+// ছবি অপটিমাইজেশন ইউটিলিটি
 const compressImage = (file, maxWidth = 1000, quality = 0.82) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -71,6 +72,7 @@ const publications = [
   { year: "2023", journal: "PLOS ONE", title: "Genome-wide identification of DCL, AGO and RDR gene families and their associated functional regulatory element analyses in sunflower (Helianthus annuus)", href: links.researchGate, tag: "RNA interference" }
 ];
 
+// ৫টি আসল অ্যাওয়ার্ড
 const initialAwardsList = [
   {
     id: "award_4ir",
@@ -119,6 +121,7 @@ const initialAwardsList = [
   }
 ];
 
+// লেটেস্ট রিসার্চ পেপারস
 const initialRealResearchPapers = [
   {
     id: "plos_one_potato",
@@ -193,24 +196,7 @@ const ibaiInitialCourses = [
   { id: "custom_team", title: "Training for your Team / Lab", tag: "WORKSHOP", desc: "Tailored bio-computation workshops for university departments, research labs and groups.", fee: "Custom", seats: 20, total: 50, status: "Custom", image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=700&q=80" }
 ];
 
-let globalLogoSrc = "/Final.jpg";
-if (typeof window !== "undefined") {
-  const probe = new Image();
-  probe.src = "/Final.jpg";
-  probe.onerror = () => {
-    globalLogoSrc = "/final.jpg";
-  };
-}
-
 export default function App() {
-  const [logoSrc, setLogoSrc] = useState(globalLogoSrc);
-  const handleLogoError = () => {
-    setLogoSrc((prev) => {
-      const next = prev === "/Final.jpg" ? "/final.jpg" : prev === "/final.jpg" ? "/Final.png" : "/final.png";
-      globalLogoSrc = next;
-      return next;
-    });
-  };
   const [adminUser, setAdminUser] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [editModalConfig, setEditModalConfig] = useState(null);
@@ -218,10 +204,13 @@ export default function App() {
   const [showPubModal, setShowPubModal] = useState(false);
   const [showNoticeModal, setShowNoticeModal] = useState(false);
 
-  const [navDrawerOpen, setNavDrawerOpen] = useState(false);
+  // নোটিশ ভিউ এক্সপ্যান্ড স্টেট
   const [noticeExpanded, setNoticeExpanded] = useState(false);
+
+  // BSDS Program Contact Modal State
   const [bsdsActiveModal, setBsdsActiveModal] = useState(null);
 
+  // Meet The Team Banner Image ও সংখ্যাগুলো
   const [teamGroupImage, setTeamGroupImage] = useState("/teammate.jpg");
   const [teamBannerStats, setTeamBannerStats] = useState({
     members: "50+",
@@ -229,12 +218,15 @@ export default function App() {
     publications: "30+"
   });
 
+  // লেটেস্ট রিসার্চ পেপারস স্টেট
   const [liveResearchPapers, setLiveResearchPapers] = useState(initialRealResearchPapers);
   const [paperEditConfig, setPaperEditConfig] = useState(null);
 
+  // অ্যাওয়ার্ডস স্টেট
   const [liveAwards, setLiveAwards] = useState(initialAwardsList);
   const [awardEditConfig, setAwardEditConfig] = useState(null);
 
+  // Dynamic States
   const [liveStats, setLiveStats] = useState(defaultStats);
   const [liveCourses, setLiveCourses] = useState(ibaiInitialCourses);
   const [liveNotices, setLiveNotices] = useState(null);
@@ -277,19 +269,12 @@ export default function App() {
   const [researchChoiceOpen, setResearchChoiceOpen] = useState(false);
   const [navResearchOpen, setNavResearchOpen] = useState(false);
   const [page, setPage] = useState("home");
-  
-  const goToPage = (nextPage) => { 
-    changePage(nextPage); 
-    setMenuOpen(false); 
-    setMoreOpen(false); 
-    setNavDrawerOpen(false);
-    window.scrollTo({ top: 0, behavior: "smooth" }); 
-  };
-
+  const goToPage = (nextPage) => { changePage(nextPage); setMenuOpen(false); setMoreOpen(false); window.scrollTo({ top: 0, behavior: "smooth" }); };
   const [query, setQuery] = useState("");
   const [year, setYear] = useState("All");
   const [selectedServices, setSelectedServices] = useState([]);
-  
+
+  // Training Ticker Controls
   const tickerWrapRef = useRef(null);
   const [tickerHovered, setTickerHovered] = useState(false);
   const isDraggingTicker = useRef(false);
@@ -340,6 +325,7 @@ export default function App() {
     }
   };
 
+  // Latest Research Ticker Controls
   const researchTickerRef = useRef(null);
   const [researchTickerHovered, setResearchTickerHovered] = useState(false);
   const isDraggingResearch = useRef(false);
@@ -390,6 +376,7 @@ export default function App() {
     }
   };
 
+  // Firebase Realtime Listener
   useEffect(() => {
     const unsubAuth = onAuthStateChanged(auth, (user) => setAdminUser(user));
 
@@ -463,6 +450,7 @@ export default function App() {
     }
   };
 
+  // লেটেস্ট পেপার সেভ ফাংশন
   const saveResearchPaper = async (updatedPaper) => {
     try {
       const updatedList = liveResearchPapers.map(p => p.id === updatedPaper.id ? updatedPaper : p);
@@ -474,6 +462,7 @@ export default function App() {
     }
   };
 
+  // অ্যাওয়ার্ড সেভ ফাংশন
   const saveAwardItem = async (updatedAward) => {
     try {
       let updatedList;
@@ -509,6 +498,7 @@ export default function App() {
     }
   };
 
+  // BSDS 4 Programs Data
   const bsdsPrograms = [
     {
       id: "seminar",
@@ -569,23 +559,15 @@ export default function App() {
     (year === "All" || p.year === year) &&
     `${p.title} ${p.journal} ${p.tag}`.toLowerCase().includes(query.toLowerCase())
   );
-  const closeMenu = () => { setMenuOpen(false); setMoreOpen(false); setNavDrawerOpen(false); };
+  const closeMenu = () => { setMenuOpen(false); setMoreOpen(false); };
 
   return (
     <main data-page={page}>
-      {/* ── HEADER ── */}
+      {/* ── HEADER (লোগোর নিচের অতিরিক্ত চিহ্ন অপসারণ) ── */}
       <header className="site-header">
         <a className="brand" href="#home" onClick={closeMenu}>
           <span className="brand-mark lab-brand-mark">
-            <img 
-              src={logoSrc} 
-              alt="Data Science & Biochemistry Lab" 
-              loading="eager"
-              fetchPriority="high"
-              decoding="async"
-              style={{ width: "100%", height: "100%", objectFit: "contain" }}
-              onError={handleLogoError} 
-            />
+            <img src="/Final.jpg" alt="Data Science & Biochemistry Lab" onError={(e) => { e.currentTarget.style.display = "none"; }} />
           </span>
           <span className="brand-name">
             DATA SCIENCE RESEARCH & TRAINING LAB
@@ -593,103 +575,59 @@ export default function App() {
           </span>
         </a>
 
-        {/* ড্রয়ার সিস্টেম */}
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginLeft: "auto" }}>
-          <nav 
-            className="navigation"
-            style={{
-              maxWidth: navDrawerOpen ? "1100px" : "0px",
-              opacity: navDrawerOpen ? 1 : 0,
-              transform: navDrawerOpen ? "translateX(0)" : "translateX(30px)",
-              overflow: "hidden",
-              pointerEvents: navDrawerOpen ? "auto" : "none",
-              transition: "all 0.35s cubic-bezier(0.16, 1, 0.3, 1)",
-              whiteSpace: "nowrap"
-            }}
-          >
-            <a className={page === "home" ? "active" : ""} href="#home" onClick={(e) => { e.preventDefault(); goToPage("home"); }}>Home</a>
-            <a className={page === "profile" ? "active" : ""} href="#about" onClick={(e) => { e.preventDefault(); goToPage("profile"); }}>Profile</a>
-            
-            <div className="nav-dropdown-wrap" style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
-              <button 
-                type="button" 
-                onClick={() => setNavResearchOpen(!navResearchOpen)}
-                style={{ minHeight: "38px", display: "inline-flex", alignItems: "center", gap: "5px", padding: "0 12px", borderRadius: "999px", background: "none", border: "none", color: "#526955", fontSize: "14.5px", fontWeight: "750", cursor: "pointer" }}
-              >
-                Research <ChevronRight size={11} style={{ transform: navResearchOpen ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.2s" }}/>
-              </button>
-              {navResearchOpen && (
-                <div style={{ position: "absolute", top: "calc(100% + 8px)", left: "0", background: "#fbfdf9", border: "1px solid rgba(49,83,52,0.18)", borderRadius: "14px", padding: "8px", display: "flex", flexDirection: "column", gap: "4px", minWidth: "185px", boxShadow: "0 14px 35px rgba(20,40,25,0.15)", zIndex: 1000 }}>
-                  <a href={links.googleScholar} target="_blank" rel="noreferrer" onClick={() => setNavResearchOpen(false)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", borderRadius: "8px", color: "#16311e", fontSize: "13px", fontWeight: "750", textDecoration: "none" }}>
-                    🎓 Google Scholar <ExternalLink size={12}/>
-                  </a>
-                  <a href={links.researchGate} target="_blank" rel="noreferrer" onClick={() => setNavResearchOpen(false)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", borderRadius: "8px", color: "#16311e", fontSize: "13px", fontWeight: "750", textDecoration: "none" }}>
-                    🔬 ResearchGate <ExternalLink size={12}/>
-                  </a>
-                </div>
-              )}
-            </div>
+        <button className="mobile-menu-button" onClick={() => setMenuOpen(!menuOpen)}>
+          {menuOpen ? <X /> : <Menu />}
+        </button>
 
-            <a className={page === "publications" ? "active" : ""} href="#publications" onClick={(e) => { e.preventDefault(); goToPage("publications"); }}>Publications</a>
-            <a className={page === "awards" ? "active" : ""} href="#awards" onClick={(e) => { e.preventDefault(); goToPage("awards"); }}>Awards</a>
-            <a className={page === "training" ? "active" : ""} href="#training" onClick={(e) => { e.preventDefault(); goToPage("training"); }}>Training & IBAI</a>
-            <a className={page === "notices" ? "active" : ""} href="#notices" onClick={(e) => { e.preventDefault(); goToPage("notices"); }}>Notices</a>
-            <a className={page === "services" ? "active" : ""} href="#services" onClick={(e) => { e.preventDefault(); goToPage("services"); }}>Services</a>
-            <a className="nav-contact" href="#contact" onClick={(e) => { e.preventDefault(); goToPage("contact"); }}>Contact <ArrowUpRight size={14} /></a>
+        <nav className={menuOpen ? "navigation navigation-open" : "navigation"}>
+          <a className={page === "home" ? "active" : ""} href="#home" onClick={(e) => { e.preventDefault(); goToPage("home"); }}>Home</a>
+          <a className={page === "profile" ? "active" : ""} href="#about" onClick={(e) => { e.preventDefault(); goToPage("profile"); }}>Profile</a>
 
-            <div className="more-menu-wrap">
-              <button className="more-menu-button" onClick={() => setMoreOpen(!moreOpen)}><MoreHorizontal size={23}/></button>
-              {moreOpen && <div className="more-menu-panel">
-                <span className="more-menu-label">EXPLORE PROFILE</span>
-                <button onClick={() => goToPage("interests")}>Research interests</button>
-                <button onClick={() => goToPage("methods")}>Methods & software</button>
-                <button onClick={() => goToPage("awards")}>Awards & service</button>
-                <button onClick={() => goToPage("training")}>Training sessions</button>
-                <button onClick={() => goToPage("notices")}>Notices & documents</button>
-                <button onClick={() => goToPage("services")}>Services & collaboration</button>
-                <button onClick={() => { setShowLoginModal(true); setMoreOpen(false); }} style={{ color: "#2f5a3d", fontWeight: "bold", textAlign: "left", width: "100%", padding: "10px" }}>
-                  ✏️ Admin Live Edit Mode
-                </button>
-                <a href={links.googleScholar} target="_blank" rel="noreferrer" onClick={closeMenu}>Google Scholar <ExternalLink size={14}/></a>
-                <a href={links.researchGate} target="_blank" rel="noreferrer" onClick={closeMenu}>ResearchGate <ExternalLink size={14}/></a>
-              </div>}
-            </div>
-          </nav>
-
-          <button
-            type="button"
-            onClick={() => setNavDrawerOpen(!navDrawerOpen)}
-            style={{
-              minHeight: "42px",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-              padding: "0 18px",
-              borderRadius: "999px",
-              background: navDrawerOpen ? "#16311e" : "linear-gradient(135deg, #245032, #1b3d26)",
-              color: "#ffffff",
-              border: "1.5px solid rgba(84, 227, 128, 0.4)",
-              boxShadow: "0 4px 14px rgba(36, 80, 50, 0.25)",
-              fontSize: "13.5px",
-              fontWeight: "800",
-              cursor: "pointer",
-              transition: "all 0.25s ease",
-              flexShrink: 0
-            }}
-          >
-            {navDrawerOpen ? (
-              <>
-                <X size={17} color="#4eed88" />
-                <span>Close</span>
-              </>
-            ) : (
-              <>
-                <Menu size={17} color="#4eed88" />
-                <span>Menu</span>
-              </>
+          <div className="nav-dropdown-wrap" style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
+            <button
+              type="button"
+              onClick={() => setNavResearchOpen(!navResearchOpen)}
+              style={{ minHeight: "38px", display: "inline-flex", alignItems: "center", gap: "5px", padding: "0 12px", borderRadius: "999px", background: "none", border: "none", color: "#526955", fontSize: "14.5px", fontWeight: "750", cursor: "pointer" }}
+            >
+              Research <ChevronRight size={11} style={{ transform: navResearchOpen ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.2s" }}/>
+            </button>
+            {navResearchOpen && (
+              <div style={{ position: "absolute", top: "calc(100% + 8px)", left: "0", background: "#fbfdf9", border: "1px solid rgba(49,83,52,0.18)", borderRadius: "14px", padding: "8px", display: "flex", flexDirection: "column", gap: "4px", minWidth: "185px", boxShadow: "0 14px 35px rgba(20,40,25,0.15)", zIndex: 1000 }}>
+                <a href={links.googleScholar} target="_blank" rel="noreferrer" onClick={() => setNavResearchOpen(false)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", borderRadius: "8px", color: "#16311e", fontSize: "13px", fontWeight: "750", textDecoration: "none" }}>
+                  🎓 Google Scholar <ExternalLink size={12}/>
+                </a>
+                <a href={links.researchGate} target="_blank" rel="noreferrer" onClick={() => setNavResearchOpen(false)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", borderRadius: "8px", color: "#16311e", fontSize: "13px", fontWeight: "750", textDecoration: "none" }}>
+                  🔬 ResearchGate <ExternalLink size={12}/>
+                </a>
+              </div>
             )}
-          </button>
-        </div>
+          </div>
+
+          <a className={page === "publications" ? "active" : ""} href="#publications" onClick={(e) => { e.preventDefault(); goToPage("publications"); }}>Publications</a>
+          <a className={page === "awards" ? "active" : ""} href="#awards" onClick={(e) => { e.preventDefault(); goToPage("awards"); }}>Awards</a>
+          <a className={page === "training" ? "active" : ""} href="#training" onClick={(e) => { e.preventDefault(); goToPage("training"); }}>Training & IBAI</a>
+          <a className={page === "notices" ? "active" : ""} href="#notices" onClick={(e) => { e.preventDefault(); goToPage("notices"); }}>Notices</a>
+          <a className={page === "services" ? "active" : ""} href="#services" onClick={(e) => { e.preventDefault(); goToPage("services"); }}>Services</a>
+          <a className="nav-contact" href="#contact" onClick={(e) => { e.preventDefault(); goToPage("contact"); }}>Contact <ArrowUpRight size={14} /></a>
+
+          <div className="more-menu-wrap">
+            <button className="more-menu-button" onClick={() => setMoreOpen(!moreOpen)}><MoreHorizontal size={23}/></button>
+            {moreOpen && <div className="more-menu-panel">
+              <span className="more-menu-label">EXPLORE PROFILE</span>
+              <button onClick={() => goToPage("interests")}>Research interests</button>
+              <button onClick={() => goToPage("methods")}>Methods & software</button>
+              <button onClick={() => goToPage("awards")}>Awards & service</button>
+              <button onClick={() => goToPage("training")}>Training sessions</button>
+              <button onClick={() => goToPage("notices")}>Notices & documents</button>
+              <button onClick={() => goToPage("services")}>Services & collaboration</button>
+              <button onClick={() => { setShowLoginModal(true); setMoreOpen(false); }} style={{ color: "#2f5a3d", fontWeight: "bold", textAlign: "left", width: "100%", padding: "10px" }}>
+                ✏️ Admin Live Edit Mode
+              </button>
+              <a href={links.googleScholar} target="_blank" rel="noreferrer" onClick={closeMenu}>Google Scholar <ExternalLink size={14}/></a>
+              <a href={links.researchGate} target="_blank" rel="noreferrer" onClick={closeMenu}>ResearchGate <ExternalLink size={14}/></a>
+            </div>}
+          </div>
+        </nav>
       </header>
 
       {/* ── BACK BUTTON ── */}
@@ -798,7 +736,7 @@ export default function App() {
             </div>
           </div>
 
-          <div 
+          <div
             className="dawn-live-ticker-wrap"
             ref={tickerWrapRef}
             onMouseEnter={() => setTickerHovered(true)}
@@ -809,8 +747,8 @@ export default function App() {
           >
             <div className="dawn-live-ticker-track">
               {liveCourses.concat(liveCourses).map((course, idx) => (
-                <div 
-                  className="dawn-service-card" 
+                <div
+                  className="dawn-service-card"
                   key={course.id + "-" + idx}
                   onClick={() => {
                     if (hasDraggedTicker.current) return;
@@ -835,7 +773,7 @@ export default function App() {
         </section>
       )}
 
-      {/* ── BSDS PROGRAM ── */}
+      {/* ── BSDS PROGRAM (COMMUNITY & LEADERSHIP) ── */}
       {page === "home" && (
         <section className="bsds-program-section page-width" style={{ padding: "45px 0 65px" }}>
           <div style={{ textAlign: "center", maxWidth: "720px", margin: "0 auto 38px" }}>
@@ -854,7 +792,7 @@ export default function App() {
             {bsdsPrograms.map((prog) => {
               const IconComponent = prog.icon;
               return (
-                <div 
+                <div
                   key={prog.id}
                   onClick={() => setBsdsActiveModal(prog)}
                   style={{
@@ -919,7 +857,7 @@ export default function App() {
         </section>
       )}
 
-      {/* ── MEET THE TEAM SHOWCASE ── */}
+      {/* ── MEET THE TEAM SHOWCASE (WITH EXACT teammate.jpg & PROFILE CONNECTION) ── */}
       {page === "home" && (
         <section className="home-team-showcase-section page-width" style={{ padding: "60px 0 85px", position: "relative" }}>
           {adminUser && (
@@ -1191,7 +1129,7 @@ export default function App() {
         </section>
       )}
 
-      {/* ── LATEST RESEARCH ── */}
+      {/* ── LATEST RESEARCH (আপনার ৪টি স্ক্রিনশটের আসল পেপার স্ন্যাপশট + এডিটেবল মোড) ── */}
       {page === "home" && (
         <section className="latest-research-section page-width" style={{ padding: "80px 0 65px", position: "relative" }}>
           <div className="section-heading" style={{ marginBottom: "26px", display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "16px" }}>
@@ -1201,7 +1139,7 @@ export default function App() {
                 Latest Research
               </h2>
             </div>
-            
+
             <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
               <button
                 type="button"
@@ -1265,7 +1203,7 @@ export default function App() {
             </div>
           </div>
 
-          <div 
+          <div
             className="dawn-live-ticker-wrap"
             ref={researchTickerRef}
             onMouseEnter={() => setResearchTickerHovered(true)}
@@ -1277,7 +1215,7 @@ export default function App() {
           >
             <div className="dawn-live-ticker-track" style={{ gap: "22px" }}>
               {liveResearchPapers.concat(liveResearchPapers).map((paper, idx) => (
-                <div 
+                <div
                   key={paper.id + "-" + idx}
                   style={{
                     width: "330px",
@@ -1519,7 +1457,7 @@ export default function App() {
         </section>
       )}
 
-      {/* ── AWARDS SECTION ── */}
+      {/* ── AWARDS SECTION (HONORS & RECOGNITIONS) ── */}
       <section className="awards-section page-width" id="awards" style={{ padding: "40px 0 100px", position: "relative" }}>
         <div className="section-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "16px", marginBottom: "36px" }}>
           <div>
@@ -1570,7 +1508,7 @@ export default function App() {
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "24px" }}>
           {liveAwards.map((award) => (
-            <div 
+            <div
               key={award.id}
               style={{
                 background: "#ffffff",
@@ -1762,7 +1700,7 @@ export default function App() {
             OUR TEAM & LEADERSHIP
           </span>
           <h2 style={{ fontSize: "28px", fontWeight: "850", color: "#111", margin: "0 0 6px" }}>Meet the Principal Investigator</h2>
-          
+
           <div style={{ position: "relative", width: "145px", height: "145px", margin: "0 auto 16px" }}>
             <img src={livePi.image} alt={livePi.name} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%", border: "4px solid #ffffff", boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }} onError={(e) => { e.currentTarget.src = "/feefaysal.jpg"; }} />
             {adminUser && (
@@ -1794,9 +1732,9 @@ export default function App() {
             <a href={links.just} target="_blank" rel="noreferrer" style={{ padding: "6px 16px", borderRadius: "999px", background: "#f1f5f9", color: "#0f172a", fontSize: "12px", fontWeight: "750", textDecoration: "none" }}>Official JUST Profile ↗</a>
           </div>
 
-          <button 
-            type="button" 
-            onClick={() => setPiDetailsOpen(!piDetailsOpen)} 
+          <button
+            type="button"
+            onClick={() => setPiDetailsOpen(!piDetailsOpen)}
             style={{ background: piDetailsOpen ? "#1e4d2b" : "#245032", color: "#fff", border: "none", padding: "10px 24px", borderRadius: "999px", fontSize: "13px", fontWeight: "800", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px", boxShadow: "0 4px 14px rgba(36,80,50,0.25)" }}
           >
             {piDetailsOpen ? "▲ Hide Full Dossier" : "▼ View Full PI Profile & Thesis Details"}
@@ -2029,10 +1967,10 @@ export default function App() {
           )}
         </div>
 
-        <div 
-          style={{ 
-            display: "flex", 
-            flexDirection: "column", 
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
             gap: "14px",
             maxHeight: noticeExpanded ? "none" : "345px",
             overflowY: noticeExpanded ? "visible" : "auto",
@@ -2042,7 +1980,7 @@ export default function App() {
           }}
         >
           {activeNotices.map((notice, index) => (
-            <article 
+            <article
               key={notice.id || index}
               style={{
                 background: "#ffffff",
@@ -2093,10 +2031,10 @@ export default function App() {
               </div>
 
               <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-                <a 
-                  href={notice.file} 
-                  target="_blank" 
-                  rel="noreferrer" 
+                <a
+                  href={notice.file}
+                  target="_blank"
+                  rel="noreferrer"
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
@@ -2117,9 +2055,9 @@ export default function App() {
                   <ExternalLink size={13}/> View Document
                 </a>
 
-                <a 
-                  href={notice.file} 
-                  download 
+                <a
+                  href={notice.file}
+                  download
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
@@ -2141,13 +2079,13 @@ export default function App() {
                 </a>
 
                 {adminUser && notice.id && (
-                  <button 
+                  <button
                     onClick={async () => {
                       if (window.confirm("এই নোটিশটি ডিলিট করতে চান?")) {
                         await deleteDoc(doc(db, "notices", notice.id));
                         alert("নোটিশ মুছে ফেলা হয়েছে!");
                       }
-                    }} 
+                    }}
                     style={{ background: "#fee2e2", border: "1px solid #f87171", color: "#dc2626", padding: "7px 9px", borderRadius: "9px", cursor: "pointer", display: "grid", placeItems: "center" }}
                     title="Delete Notice"
                   >
@@ -2198,7 +2136,7 @@ export default function App() {
         )}
       </section>
 
-      {/* ── CONTACT ── */}
+      {/* ── CONTACT (হোমপেজে সরাসরি হোয়াটসঅ্যাপ আইকন ও লিংক) ── */}
       <section className="contact-section" id="contact">
         <div className="page-width contact-inner" style={{ position: "relative" }}>
           {adminUser && (
@@ -2244,13 +2182,7 @@ export default function App() {
           <div className="footer-identity">
             <a className="brand footer-brand" href="#home" onClick={closeMenu}>
               <span className="brand-mark lab-brand-mark">
-                <img 
-                  src={logoSrc} 
-                  alt="Data Science & Biochemistry Lab" 
-                  loading="lazy"
-                  decoding="async"
-                  onError={handleLogoError}
-                />
+                <img src="/Final.jpg" alt="Data Science & Biochemistry Lab" onError={(e)=>{e.currentTarget.style.display="none";}}/>
               </span>
               <span className="brand-name">
                 DATA SCIENCE RESEARCH & TRAINING LAB
@@ -2281,35 +2213,35 @@ export default function App() {
         </div>
       </footer>
 
-      {/* ── BSDS PROGRAM INTERACTIVE MODAL ── */}
+      {/* ── BSDS PROGRAM INTERACTIVE MODAL (EMAIL & WHATSAPP) ── */}
       {bsdsActiveModal && (
-        <div 
-          style={{ 
-            position: "fixed", 
-            inset: 0, 
-            zIndex: 9999999, 
-            background: "rgba(0,0,0,0.6)", 
-            backdropFilter: "blur(6px)", 
-            display: "grid", 
-            placeItems: "center", 
-            padding: "20px" 
-          }} 
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999999,
+            background: "rgba(0,0,0,0.6)",
+            backdropFilter: "blur(6px)",
+            display: "grid",
+            placeItems: "center",
+            padding: "20px"
+          }}
           onClick={() => setBsdsActiveModal(null)}
         >
-          <div 
-            style={{ 
-              background: "#ffffff", 
-              borderRadius: "24px", 
-              padding: "32px", 
-              width: "100%", 
-              maxWidth: "460px", 
+          <div
+            style={{
+              background: "#ffffff",
+              borderRadius: "24px",
+              padding: "32px",
+              width: "100%",
+              maxWidth: "460px",
               position: "relative",
               boxShadow: "0 20px 50px rgba(0,0,0,0.18)"
-            }} 
+            }}
             onClick={(e) => e.stopPropagation()}
           >
-            <button 
-              onClick={() => setBsdsActiveModal(null)} 
+            <button
+              onClick={() => setBsdsActiveModal(null)}
               style={{ position: "absolute", top: "18px", right: "18px", background: "none", border: "none", cursor: "pointer", color: "#64748b" }}
             >
               <X size={20}/>
@@ -2328,7 +2260,7 @@ export default function App() {
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              <a 
+              <a
                 href={`https://wa.me/8801747091195?text=${encodeURIComponent(`Hello Fee Faysal Ahmed Sir,\nI am interested in the BSDS Program: "${bsdsActiveModal.title}". Could you please guide me on how to proceed?`)}`}
                 target="_blank"
                 rel="noreferrer"
@@ -2359,7 +2291,7 @@ export default function App() {
                 <ArrowRight size={18} />
               </a>
 
-              <a 
+              <a
                 href={`mailto:${liveContact.email}?subject=${encodeURIComponent(`BSDS Program Inquiry: ${bsdsActiveModal.title}`)}&body=${encodeURIComponent(`Dear Fee Faysal Ahmed,\n\nI am writing to inquire about the BSDS Program opportunity for "${bsdsActiveModal.title}".\n\nName:\nInstitution/Department:\nPhone Number:\nMessage:\n\nThank you.`)}`}
                 style={{
                   display: "flex",
@@ -2400,6 +2332,7 @@ export default function App() {
       <AdminFloatingBar user={adminUser} onLogout={() => signOut(auth)} />
       <AdminLoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} onLoginSuccess={() => {}} />
 
+      {/* INLINE EDIT MODAL */}
       {editModalConfig && (
         <InlineEditModal
           isOpen={true}
@@ -2411,12 +2344,13 @@ export default function App() {
         />
       )}
 
+      {/* LATEST RESEARCH PAPER EDIT MODAL */}
       {paperEditConfig && (
         <div style={{ position: "fixed", inset: 0, zIndex: 9999999, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(6px)", display: "grid", placeItems: "center", padding: "20px" }} onClick={() => setPaperEditConfig(null)}>
           <div style={{ background: "#fff", borderRadius: "22px", padding: "28px", width: "100%", maxWidth: "460px", maxHeight: "90vh", overflowY: "auto", position: "relative" }} onClick={(e) => e.stopPropagation()}>
             <button onClick={() => setPaperEditConfig(null)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", cursor: "pointer" }}><X size={20}/></button>
             <h3 style={{ margin: "0 0 16px", fontSize: "17px", fontWeight: "800", color: "#16311e" }}>✏️ রিসার্চ পেপার এডিট ও ছবি পরিবর্তন</h3>
-            
+
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               <div style={{ padding: "12px", background: "#f8fafc", border: "1.5px dashed #2563eb", borderRadius: "10px", textAlign: "center" }}>
                 <label style={{ fontSize: "12px", fontWeight: "bold", color: "#2563eb", display: "block", marginBottom: "6px" }}>📷 কম্পিউটার থেকে সরাসরি পেপারের স্ক্রিনশট সিলেক্ট করুন</label>
@@ -2469,6 +2403,7 @@ export default function App() {
         </div>
       )}
 
+      {/* AWARDS EDIT MODAL */}
       {awardEditConfig && (
         <div style={{ position: "fixed", inset: 0, zIndex: 9999999, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(6px)", display: "grid", placeItems: "center", padding: "20px" }} onClick={() => setAwardEditConfig(null)}>
           <div style={{ background: "#fff", borderRadius: "22px", padding: "28px", width: "100%", maxWidth: "460px", maxHeight: "90vh", overflowY: "auto", position: "relative" }} onClick={(e) => e.stopPropagation()}>
@@ -2529,33 +2464,36 @@ export default function App() {
         </div>
       )}
 
-      <PublicationUploadModal 
-        isOpen={showPubModal} 
-        onClose={() => setShowPubModal(false)} 
+      {/* PUBLICATION UPLOAD MODAL */}
+      <PublicationUploadModal
+        isOpen={showPubModal}
+        onClose={() => setShowPubModal(false)}
         onSave={async (newPub) => {
           const currentList = livePublications || publications;
           const updated = [newPub, ...currentList];
           setLivePublications(updated);
           await setDoc(doc(db, "settings", "publications_data"), { list: updated }, { merge: true });
           alert("নতুন পাবলিকেশন সফলভাবে যুক্ত হয়েছে! ✓");
-        }} 
+        }}
       />
 
-      <NoticeUploadModal 
-        isOpen={showNoticeModal} 
-        onClose={() => setShowNoticeModal(false)} 
+      {/* NOTICE UPLOAD MODAL */}
+      <NoticeUploadModal
+        isOpen={showNoticeModal}
+        onClose={() => setShowNoticeModal(false)}
         onSave={async (noticeData) => {
           await addDoc(collection(db, "notices"), noticeData);
           alert("নোটিশ সফলভাবে লাইভ পাবলিশ হয়েছে! ✓");
-        }} 
+        }}
       />
 
+      {/* TEAM MEMBER & PI DIRECT EDIT MODAL */}
       {teamMemberEditConfig && (
         <div style={{ position: "fixed", inset: 0, zIndex: 9999999, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(6px)", display: "grid", placeItems: "center", padding: "20px" }} onClick={() => setTeamMemberEditConfig(null)}>
           <div style={{ background: "#fff", borderRadius: "22px", padding: "28px", width: "100%", maxWidth: "460px", maxHeight: "90vh", overflowY: "auto", position: "relative" }} onClick={(e) => e.stopPropagation()}>
             <button onClick={() => setTeamMemberEditConfig(null)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", cursor: "pointer" }}><X size={20}/></button>
             <h3 style={{ margin: "0 0 16px", fontSize: "17px", fontWeight: "800", color: "#16311e" }}>✏️ {teamMemberEditConfig.title}</h3>
-            
+
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               <div style={{ padding: "12px", background: "#f4f8f3", border: "1px dashed #245032", borderRadius: "10px", textAlign: "center" }}>
                 <label style={{ fontSize: "12px", fontWeight: "bold", color: "#245032", display: "block", marginBottom: "6px" }}>📷 কম্পিউটার থেকে সরাসরি ছবি নির্বাচন করুন</label>
