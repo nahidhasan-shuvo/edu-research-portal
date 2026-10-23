@@ -193,7 +193,24 @@ const ibaiInitialCourses = [
   { id: "custom_team", title: "Training for your Team / Lab", tag: "WORKSHOP", desc: "Tailored bio-computation workshops for university departments, research labs and groups.", fee: "Custom", seats: 20, total: 50, status: "Custom", image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=700&q=80" }
 ];
 
+let globalLogoSrc = "/Final.jpg";
+if (typeof window !== "undefined") {
+  const probe = new Image();
+  probe.src = "/Final.jpg";
+  probe.onerror = () => {
+    globalLogoSrc = "/final.jpg";
+  };
+}
+
 export default function App() {
+  const [logoSrc, setLogoSrc] = useState(globalLogoSrc);
+  const handleLogoError = () => {
+    setLogoSrc((prev) => {
+      const next = prev === "/Final.jpg" ? "/final.jpg" : prev === "/final.jpg" ? "/Final.png" : "/final.png";
+      globalLogoSrc = next;
+      return next;
+    });
+  };
   const [adminUser, setAdminUser] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [editModalConfig, setEditModalConfig] = useState(null);
@@ -561,13 +578,13 @@ export default function App() {
         <a className="brand" href="#home" onClick={closeMenu}>
           <span className="brand-mark lab-brand-mark">
             <img 
-              src="/Final.jpg" 
+              src={logoSrc} 
               alt="Data Science & Biochemistry Lab" 
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
               style={{ width: "100%", height: "100%", objectFit: "contain" }}
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = "/final.jpg";
-              }} 
+              onError={handleLogoError} 
             />
           </span>
           <span className="brand-name">
@@ -2227,7 +2244,13 @@ export default function App() {
           <div className="footer-identity">
             <a className="brand footer-brand" href="#home" onClick={closeMenu}>
               <span className="brand-mark lab-brand-mark">
-                <img src="/Final.jpg" alt="Data Science & Biochemistry Lab" onError={(e)=>{e.currentTarget.style.display="none";}}/>
+                <img 
+                  src={logoSrc} 
+                  alt="Data Science & Biochemistry Lab" 
+                  loading="lazy"
+                  decoding="async"
+                  onError={handleLogoError}
+                />
               </span>
               <span className="brand-name">
                 DATA SCIENCE RESEARCH & TRAINING LAB
