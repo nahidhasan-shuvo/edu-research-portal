@@ -1085,3 +1085,77 @@ main[data-page="profile"] .intro-section {
     min-height: auto !important;
   }
 }
+
+/* ===================================================
+   MOBILE RESPONSIVE ENGINE (LAPTOP UNTOUCHED, MOBILE SMOOTH)
+=================================================== */
+@media (max-width: 860px) {
+  html, body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+  }
+  .site-header {
+    height: 70px !important;
+    padding: 0 14px !important;
+  }
+  .lab-brand-mark {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    border-radius: 10px !important;
+    padding: 3px !important;
+  }
+  .brand-name {
+    font-size: 11.5px !important;
+    line-height: 1.15 !important;
+  }
+  .brand-name span {
+    font-size: 7.5px !important;
+    letter-spacing: 0.05em !important;
+  }
+  .mobile-menu-button {
+    display: none !important;
+  }
+  .hero.hero-reference-layout {
+    flex-direction: column-reverse !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    padding: 95px 16px 40px !important;
+    min-height: auto !important;
+    gap: 32px !important;
+  }
+  .hero-content {
+    max-width: 100% !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  .adobe-max-title {
+    font-size: 32px !important;
+    line-height: 1.15 !important;
+    text-align: center !important;
+  }
+  .adobe-max-lead {
+    font-size: 13.5px !important;
+    line-height: 1.6 !important;
+    text-align: center !important;
+    margin: 0 auto 20px !important;
+  }
+  .hero-actions {
+    display: flex !important;
+    justify-content: center !important;
+    gap: 10px !important;
+    width: 100% !important;
+  }
+  .hero-phone-mockup {
+    width: 240px !important;
+    min-width: unset !important;
+    max-width: 80% !important;
+    margin: 0 auto !important;
+  }
+  .phone-frame {
+    transform: none !important;
+  }
+}

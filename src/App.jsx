@@ -201,9 +201,7 @@ export default function App() {
   const [showPubModal, setShowPubModal] = useState(false);
   const [showNoticeModal, setShowNoticeModal] = useState(false);
 
-  // নেভিগেশন বার ড্রয়ার স্টেট
   const [navDrawerOpen, setNavDrawerOpen] = useState(false);
-
   const [noticeExpanded, setNoticeExpanded] = useState(false);
   const [bsdsActiveModal, setBsdsActiveModal] = useState(null);
 
@@ -562,7 +560,15 @@ export default function App() {
       <header className="site-header">
         <a className="brand" href="#home" onClick={closeMenu}>
           <span className="brand-mark lab-brand-mark">
-            <img src="/Final.jpg" alt="Data Science Lab" onError={(e)=>{if(!e.currentTarget.dataset.t){e.currentTarget.dataset.t="1";e.currentTarget.src="/final.jpg"}else if(e.currentTarget.dataset.t==="1"){e.currentTarget.dataset.t="2";e.currentTarget.src="/Final.png"}else{e.currentTarget.src="/final.png"}}} /> { if (!e.currentTarget.dataset.tried) { e.currentTarget.dataset.tried = "1"; e.currentTarget.src = "/final.jpg"; } else if (e.currentTarget.dataset.tried === "1") { e.currentTarget.dataset.tried = "2"; e.currentTarget.src = "/Final.png"; } else if (e.currentTarget.dataset.tried === "2") { e.currentTarget.dataset.tried = "3"; e.currentTarget.src = "/final.png"; } }} /> { e.currentTarget.style.display = "none"; }} />
+            <img 
+              src="/Final.jpg" 
+              alt="Data Science & Biochemistry Lab" 
+              style={{ width: "100%", height: "100%", objectFit: "contain" }}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = "/final.jpg";
+              }} 
+            />
           </span>
           <span className="brand-name">
             DATA SCIENCE RESEARCH & TRAINING LAB
@@ -570,14 +576,10 @@ export default function App() {
           </span>
         </a>
 
-        <button className="mobile-menu-button" onClick={() => setMenuOpen(!menuOpen)}>
-          {menuOpen ? <X /> : <Menu />}
-        </button>
-
-        {/* ড্রয়ার সিস্টেম: মেনু বাটনে ক্লিক করলে বের হবে, আবার ক্লিক করলে ভেতরে ঢুকে যাবে */}
+        {/* ড্রয়ার সিস্টেম */}
         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginLeft: "auto" }}>
           <nav 
-            className={menuOpen ? "navigation navigation-open" : "navigation"}
+            className="navigation"
             style={{
               maxWidth: navDrawerOpen ? "1100px" : "0px",
               opacity: navDrawerOpen ? 1 : 0,
@@ -637,7 +639,6 @@ export default function App() {
             </div>
           </nav>
 
-          {/* মেনু ড্রয়ার বাটন */}
           <button
             type="button"
             onClick={() => setNavDrawerOpen(!navDrawerOpen)}
@@ -2226,7 +2227,7 @@ export default function App() {
           <div className="footer-identity">
             <a className="brand footer-brand" href="#home" onClick={closeMenu}>
               <span className="brand-mark lab-brand-mark">
-                <img src="/Final.jpg" alt="Data Science Lab" onError={(e)=>{if(!e.currentTarget.dataset.t){e.currentTarget.dataset.t="1";e.currentTarget.src="/final.jpg"}else if(e.currentTarget.dataset.t==="1"){e.currentTarget.dataset.t="2";e.currentTarget.src="/Final.png"}else{e.currentTarget.src="/final.png"}}} /> { if (!e.currentTarget.dataset.tried) { e.currentTarget.dataset.tried = "1"; e.currentTarget.src = "/final.jpg"; } else if (e.currentTarget.dataset.tried === "1") { e.currentTarget.dataset.tried = "2"; e.currentTarget.src = "/Final.png"; } else if (e.currentTarget.dataset.tried === "2") { e.currentTarget.dataset.tried = "3"; e.currentTarget.src = "/final.png"; } }} />{e.currentTarget.style.display="none";}}/>
+                <img src="/Final.jpg" alt="Data Science & Biochemistry Lab" onError={(e)=>{e.currentTarget.style.display="none";}}/>
               </span>
               <span className="brand-name">
                 DATA SCIENCE RESEARCH & TRAINING LAB
