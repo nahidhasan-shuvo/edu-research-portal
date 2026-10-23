@@ -1,0 +1,208 @@
+import React from "react";
+import { Dna, ChartNoAxesCombined, Users, ArrowUpRight, Sparkles, Award } from "lucide-react";
+
+export default function HomeGlassIntro({ goToPage, stats }) {
+  return (
+    <section className="home-glass-intro-section page-width" style={{
+      position: "relative",
+      padding: "30px 0 60px",
+      zIndex: 2
+    }}>
+      {/* গ্লাস ব্যাকগ্রাউন্ড লাইটিং গ্লো */}
+      <div style={{
+        position: "absolute",
+        top: "20%",
+        left: "50%",
+        transform: "translateX(-50%)",
+        width: "min(650px, 90%)",
+        height: "260px",
+        background: "radial-gradient(ellipse, rgba(37, 99, 235, 0.12), rgba(34, 197, 94, 0.08), transparent 70%)",
+        filter: "blur(60px)",
+        pointerEvents: "none",
+        zIndex: 0
+      }} />
+
+      {/* টপ হেডিং */}
+      <div style={{ textAlign: "center", maxWidth: "780px", margin: "0 auto 36px", position: "relative", zIndex: 1 }}>
+        <div style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "8px",
+          padding: "5px 16px",
+          borderRadius: "999px",
+          background: "rgba(255, 255, 255, 0.75)",
+          border: "1.5px solid rgba(49, 83, 52, 0.18)",
+          backdropFilter: "blur(12px)",
+          boxShadow: "0 4px 15px rgba(20, 45, 25, 0.04)",
+          marginBottom: "14px"
+        }}>
+          <Sparkles size={14} color="#2563eb" />
+          <span style={{ fontSize: "11px", fontWeight: "800", letterSpacing: "0.14em", color: "#1e40af", fontFamily: "var(--mono)" }}>
+            ACADEMIC INQUIRY & DATA INTELLIGENCE
+          </span>
+        </div>
+
+        <h2 style={{
+          fontSize: "clamp(28px, 3.8vw, 42px)",
+          fontWeight: "850",
+          color: "#112417",
+          lineHeight: "1.2",
+          margin: "0 0 10px",
+          letterSpacing: "-0.03em"
+        }}>
+          Bridging Theory with <span style={{
+            background: "linear-gradient(105deg, #1b7a42, #2563eb 50%, #0d9488)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent"
+          }}>High-Impact Discovery.</span>
+        </h2>
+
+        <p style={{
+          fontSize: "15px",
+          color: "#4b6352",
+          lineHeight: "1.75",
+          margin: "0 auto",
+          maxWidth: "660px"
+        }}>The academic platform of the Applied Statistics, Genomics, and AI Lab at JUST. We are dedicated to conducting international-standard research that integrates advanced mathematical modeling with bioinformatics.
+        </p>
+      </div>
+
+      {/* ৩টি আল্ট্রা-মডার্ন ফ্রস্টেড গ্লাস কার্ড */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(290px, 1fr))",
+        gap: "24px",
+        position: "relative",
+        zIndex: 1
+      }}>
+
+        {/* কার্ড ১: জিনোমিক্স ও বায়োইনফরমেটিক্স */}
+        <div style={{
+          background: "linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(244, 249, 242, 0.65))",
+          backdropFilter: "blur(20px)",
+          border: "1.5px solid rgba(49, 83, 52, 0.18)",
+          borderRadius: "24px",
+          padding: "28px 24px",
+          boxShadow: "0 14px 35px rgba(20, 45, 25, 0.05)",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          transition: "transform 0.25s, box-shadow 0.25s"
+        }}>
+          <div>
+            <div style={{
+              width: "48px",
+              height: "48px",
+              borderRadius: "14px",
+              background: "#e0f2fe",
+              border: "1px solid #bae6fd",
+              color: "#0284c7",
+              display: "grid",
+              placeItems: "center",
+              marginBottom: "18px"
+            }}>
+              <Dna size={24} />
+            </div>
+            <h3 style={{ fontSize: "19px", fontWeight: "800", color: "#142d1c", margin: "0 0 8px" }}>
+              Genome & RNAi Research
+            </h3>
+            <p style={{ fontSize: "13.5px", color: "#526956", lineHeight: "1.65", margin: 0 }}>
+              Genome-wide identification, RNA interference (RNAi) gene families, Brassica rapa ও Solanum tuberosum-এর আধুনিক মলিকুলার মডেলিং।
+            </p>
+          </div>
+          <div style={{ marginTop: "22px", paddingTop: "14px", borderTop: "1px dashed rgba(49, 83, 52, 0.15)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: "11px", fontWeight: "800", color: "#0369a1", fontFamily: "var(--mono)" }}>PLOS ONE · BMC GENOMICS</span>
+            <button onClick={() => goToPage("publications")} style={{ background: "none", border: "none", color: "#2563eb", cursor: "pointer", display: "flex", alignItems: "center", gap: "2px", fontWeight: "750", fontSize: "12px" }}>
+              Explore <ArrowUpRight size={14} />
+            </button>
+          </div>
+        </div>
+
+        {/* কার্ড ২: স্ট্যাটিস্টিক্যাল ডেটা সায়েন্স ও এআই */}
+        <div style={{
+          background: "linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(240, 246, 255, 0.65))",
+          backdropFilter: "blur(20px)",
+          border: "1.5px solid rgba(37, 99, 235, 0.2)",
+          borderRadius: "24px",
+          padding: "28px 24px",
+          boxShadow: "0 14px 35px rgba(37, 99, 235, 0.08)",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          transition: "transform 0.25s, box-shadow 0.25s"
+        }}>
+          <div>
+            <div style={{
+              width: "48px",
+              height: "48px",
+              borderRadius: "14px",
+              background: "#dcfce7",
+              border: "1px solid #bbf7d0",
+              color: "#16a34a",
+              display: "grid",
+              placeItems: "center",
+              marginBottom: "18px"
+            }}>
+              <ChartNoAxesCombined size={24} />
+            </div>
+            <h3 style={{ fontSize: "19px", fontWeight: "800", color: "#142d1c", margin: "0 0 8px" }}>
+              Predictive AI & Biostatistics
+            </h3>
+            <p style={{ fontSize: "13.5px", color: "#526956", lineHeight: "1.65", margin: 0 }}>
+              Statistical modeling, Machine Learning architectures এবং হাই-থ্রুপুট বায়োমেডিকেল ডেটা বিশ্লেষণের মাধ্যমে জটিল প্রশ্নের সহজ সমাধান।
+            </p>
+          </div>
+          <div style={{ marginTop: "22px", paddingTop: "14px", borderTop: "1px dashed rgba(49, 83, 52, 0.15)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: "11px", fontWeight: "800", color: "#15803d", fontFamily: "var(--mono)" }}>RESEARCHGATE VERIFIED</span>
+            <button onClick={() => goToPage("publications")} style={{ background: "none", border: "none", color: "#16a34a", cursor: "pointer", display: "flex", alignItems: "center", gap: "2px", fontWeight: "750", fontSize: "12px" }}>
+              Citations <ArrowUpRight size={14} />
+            </button>
+          </div>
+        </div>
+
+        {/* কার্ড ৩: টিম ও ফেলোশিপ ল্যাব */}
+        <div style={{
+          background: "linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(250, 245, 255, 0.65))",
+          backdropFilter: "blur(20px)",
+          border: "1.5px solid rgba(147, 51, 234, 0.2)",
+          borderRadius: "24px",
+          padding: "28px 24px",
+          boxShadow: "0 14px 35px rgba(147, 51, 234, 0.06)",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          transition: "transform 0.25s, box-shadow 0.25s"
+        }}>
+          <div>
+            <div style={{
+              width: "48px",
+              height: "48px",
+              borderRadius: "14px",
+              background: "#f3e8ff",
+              border: "1px solid #e9d5ff",
+              color: "#9333ea",
+              display: "grid",
+              placeItems: "center",
+              marginBottom: "18px"
+            }}>
+              <Users size={24} />
+            </div>
+            <h3 style={{ fontSize: "19px", fontWeight: "800", color: "#142d1c", margin: "0 0 8px" }}>
+              Lab Fellows & Mentorship
+            </h3>
+            <p style={{ fontSize: "13.5px", color: "#526956", lineHeight: "1.65", margin: 0 }}>
+              ১২ জন রিসার্চ অ্যাসিস্ট্যান্টদের সার্বক্ষণিক তত্ত্বাবধান ও IBAI প্রোগ্রামের মাধ্যমে তরুণ গবেষকদের স্কিল ডেভেলপমেন্ট ও বাস্তব পাবলিকেশন ট্র্যাক।
+            </p>
+          </div>
+          <div style={{ marginTop: "22px", paddingTop: "14px", borderTop: "1px dashed rgba(49, 83, 52, 0.15)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: "11px", fontWeight: "800", color: "#7e22ce", fontFamily: "var(--mono)" }}>12 ACTIVE RESEARCHERS</span>
+            <button onClick={() => goToPage("profile")} style={{ background: "none", border: "none", color: "#9333ea", cursor: "pointer", display: "flex", alignItems: "center", gap: "2px", fontWeight: "750", fontSize: "12px" }}>
+              View Team <ArrowUpRight size={14} />
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  );
+}

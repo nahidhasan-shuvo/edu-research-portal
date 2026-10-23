@@ -1,0 +1,92 @@
+import React from "react";
+import { Dna, ChartNoAxesCombined, Users, ArrowUpRight, Sparkles } from "lucide-react";
+
+export default function HomeGlassIntro({ goToPage }) {
+  const introCards = [
+    {
+      id: "genome",
+      title: "Genome & RNAi Research",
+      desc: "Genome-wide identification and characterization of gene families, RNA interference (RNAi), and advanced molecular modeling in Brassica rapa and Solanum tuberosum.",
+      badge: "PLOS ONE · BMC GENOMICS",
+      actionText: "Explore",
+      actionTarget: "publications",
+      icon: Dna,
+      accent: "cyan",
+      bgImage: "https://images.unsplash.com/photo-1530210124550-9120c7e2e9a7?auto=format&fit=crop&w=1000&q=85"
+    },
+    {
+      id: "ai_biostat",
+      title: "Predictive AI & Biostatistics",
+      desc: "Applying statistical modeling, machine learning architectures, and high-throughput biomedical data analysis to uncover meaningful patterns and solve complex research problems.",
+      badge: "RESEARCHGATE VERIFIED",
+      actionText: "Citations",
+      actionTarget: "https://scholar.google.com/citations?user=OtW5C_MAAAAJ&hl=en",
+      isExternal: true,
+      icon: ChartNoAxesCombined,
+      accent: "emerald",
+      bgImage: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1000&q=85"
+    },
+    {
+      id: "fellows",
+      title: "Lab Fellows & Mentorship",
+      desc: "Supporting the development of emerging researchers through dedicated mentorship, the IBAI program, practical research training, and guidance toward meaningful scientific publications.",
+      badge: "12 ACTIVE RESEARCHERS",
+      actionText: "View Team",
+      actionTarget: "profile",
+      icon: Users,
+      accent: "violet",
+      bgImage: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1000&q=85"
+    }
+  ];
+
+  return (
+    <section className="home-glass-intro-section page-width" style={{ padding: "40px 0 30px" }}>
+      <div className="futuristic-glass-grid">
+        {introCards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <div 
+              key={card.id} 
+              className={`futuristic-glass-card accent-${card.accent}`}
+              onClick={() => {
+                if (card.isExternal) {
+                  window.open(card.actionTarget, "_blank");
+                } else {
+                  goToPage(card.actionTarget);
+                }
+              }}
+            >
+              {/* ৩ডি ব্যাকগ্রাউন্ড ইমেজ লেয়ার */}
+              <div 
+                className="glass-card-bg" 
+                style={{ backgroundImage: `url("${card.bgImage}")` }}
+              />
+              <div className="glass-card-overlay" />
+              <div className="glass-card-reflection" />
+
+              {/* কার্ড কন্টেন্ট */}
+              <div className="glass-card-content">
+                <div className="glass-card-header">
+                  <div className="glass-icon-wrapper">
+                    <Icon size={22} className="glass-icon" />
+                  </div>
+                  <span className="glass-badge">{card.badge}</span>
+                </div>
+
+                <h3 className="glass-card-title">{card.title}</h3>
+                <p className="glass-card-desc">{card.desc}</p>
+
+                <div className="glass-card-footer">
+                  <span className="glass-action-label">
+                    {card.actionText}
+                    <ArrowUpRight size={15} className="glass-arrow" />
+                  </span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}

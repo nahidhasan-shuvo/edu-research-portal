@@ -1,0 +1,925 @@
+import HomeGlassIntro from "./components/HomeGlassIntro.jsx";
+import { AdminLoginModal, AdminFloatingBar, InlineEditModal, PublicationUploadModal, NoticeUploadModal } from "./components/AdminPanel.jsx";
+import { auth, db } from "./firebase";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { collection, onSnapshot, doc, setDoc, addDoc, deleteDoc } from "firebase/firestore";
+import {
+  ArrowDownRight, ArrowRight, ArrowUpRight, Atom, Award, BookOpen,
+  BriefcaseBusiness, CalendarDays, ChartNoAxesCombined, Dna, ExternalLink,
+  FlaskConical, GraduationCap, Mail, MapPin, Menu, Microscope, Network,
+  Orbit, Phone, Quote, Sparkles, X, MoreHorizontal, Code2, Users, CalendarCheck, BadgeCheck, ChevronLeft, ChevronRight, FileText, FileDown, Bell, Search, Edit3, Trash2, Camera, Plus
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import VideoBackground from "./components/VideoBackground.jsx";
+import { notices as defaultNotices } from "./data/notices.js";
+
+const links = {
+  just: "https://just.edu.bd/t/feefaysalammed",
+  researchGate: "https://www.researchgate.net/profile/Fee-Faysal-Ahmed-2",
+  googleScholar: "https://scholar.google.com/citations?user=OtW5C_MAAAAJ&hl=en",
+  justPublications: "https://just.edu.bd/t/feefaysalammed/publications",
+  justEducation: "https://just.edu.bd/t/feefaysalammed/education",
+  contact: "https://just.edu.bd/t/feefaysalammed/contact",
+  lab: "https://just.edu.bd/t/feefaysalammed"
+};
+
+const defaultStats = [
+  { value: "54", label: "ResearchGate publications", note: "Profile figure observed Oct 2026" },
+  { value: "626", label: "Citations", note: "ResearchGate profile figure" },
+  { value: "16.3K+", label: "ResearchGate reads", note: "Profile figure observed Oct 2026" },
+  { value: "8+", label: "Research interests", note: "Bioinformatics to deep learning" }
+];
+
+const interests = [
+  { icon: Dna, title: "Bioinformatics & Genomics", text: "Computational analysis of biological systems, gene families and genomic data." },
+  { icon: ChartNoAxesCombined, title: "Statistics & Machine Learning", text: "Statistical analysis, predictive modelling, classification and data-driven inference." },
+  { icon: FlaskConical, title: "Proteomics & Drug Discovery", text: "Protein-focused computational research and molecular target exploration." },
+  { icon: Microscope, title: "Public Health", text: "Quantitative approaches to health-related questions and biological evidence." }
+];
+
+const publications = [
+  { year: "2026", journal: "BMC Genomic Data", title: "Genome-wide identification and characterization of the RNAi gene families in Brassica rapa L. highlighting their regulatory components and underlying functions involving crop improvement", href: links.researchGate, tag: "Plant genomics" },
+  { year: "2026", journal: "PLOS ONE", title: "Genome-wide identification and characterization of argonaute, dicer-like, and RNA-dependent RNA polymerase gene families in potato (Solanum tuberosum): Advancing RNA interference-based crop enhancement", href: "https://doi.org/10.1371/journal.pone.0339021", tag: "RNA interference" },
+  { year: "2025", journal: "BioMed Research International", title: "Unveiling the Therapeutic Potential of Piper chaba Hunter: Computational Approaches Shed Light on Targeting Proteins in Alzheimer’s Disease", href: links.researchGate, tag: "Computational biology" },
+  { year: "2024", journal: "F1000Research", title: "A computational biology approach for the identification of potential SARS-CoV-2 main protease inhibitors from natural essential oil compounds", href: links.researchGate, tag: "Drug discovery" },
+  { year: "2024", journal: "Tropical Plant Biology", title: "Genome-wide Identification and Functional Analysis of RNAi Gene Families in Papaya (Carica papaya L.)", href: links.researchGate, tag: "Plant genomics" },
+  { year: "2024", journal: "Genetics Research", title: "Genome-Wide Comprehensive Identification and In Silico Characterization of Lectin Receptor-Like Kinase Gene Family in Barley (Hordeum vulgare L.)", href: links.researchGate, tag: "Plant genomics" },
+  { year: "2024", journal: "Environmental Monitoring and Assessment", title: "Effect of water quality parameters and climatic influences on reproductive phenology of Macrognathus pancalus in wetland ecosystem: recommending a long-term management approach and conservation policy", href: links.researchGate, tag: "Environmental research" },
+  { year: "2023", journal: "PLOS ONE", title: "Genome-wide identification, classification, and characterization of lectin gene superfamily in sweet orange (Citrus sinensis L.)", href: links.researchGate, tag: "Plant genomics" },
+  { year: "2023", journal: "Scientific Reports", title: "Identification of genetic biomarkers, drug targets and agents for respiratory diseases utilising integrated bioinformatics approaches", href: links.researchGate, tag: "Health bioinformatics" },
+  { year: "2023", journal: "Combinatorial Chemistry & High Throughput Screening", title: "Investigating the Precise Identification of Citrullination Sites with High-Performance Score Metrics Using a Powerful Computation Predicting Tool", href: links.researchGate, tag: "Predictive modelling" },
+  { year: "2023", journal: "PLOS ONE", title: "Genome-wide identification of DCL, AGO and RDR gene families and their associated functional regulatory element analyses in sunflower (Helianthus annuus)", href: links.researchGate, tag: "RNA interference" }
+];
+
+const education = [
+  { period: "2016–2017", degree: "M.Sc. in Statistics", place: "University of Rajshahi" },
+  { period: "2012–2016", degree: "B.Sc. (Honours) in Statistics", place: "University of Rajshahi" },
+  { period: "2010–2012", degree: "Higher Secondary Certificate (HSC)", place: "Singra Damdama Pilot School & College" },
+  { period: "2005–2010", degree: "Secondary School Certificate (SSC)", place: "Singra Damdama Pilot School & College" },
+  { period: "2000–2005", degree: "Primary Education", place: "16 No. Borogaon Government Primary School" }
+];
+
+const awards = [
+  ["2018", "Dean’s Award", "Rajshahi University; for excellent B.Sc. (Honours) examination results."],
+  ["2017", "Best Poster Award", "Awarded based on international scientific committee reviews and presentation."],
+  ["2017", "NST Fellowship Scholarship", "National Science and Technology fellowship."],
+  ["2013", "Outstanding Performance", "Probability Theory course, Department of Statistics, University of Rajshahi."]
+];
+
+const skills = [
+  "Statistical analysis", "Statistical modelling", "R & RStudio", "Python", "SPSS", "STATA",
+  "Logistic regression", "Linear regression", "Statistical inference", "Data analysis",
+  "Weka / data mining", "MAPLE", "C / C++", "Perl", "Simulation & modelling", "MEGA 11"
+];
+
+// DAWN OF BIOINFORMATICS IBAI PROGRAMS (12 FULL PROGRAMS)
+const ibaiInitialCourses = [
+  { id: "r_biostat", title: "R Programming & Biostatistics", tag: "PROGRAMMING", desc: "Data cleaning, ggplot2 publication graphics and statistical hypothesis testing.", fee: "2500", seats: 12, total: 30, status: "Running", image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=700&q=80" },
+  { id: "python_ds", title: "Python for Data Analysis & AI", tag: "DATA SCIENCE", desc: "Research data workflows with Pandas, NumPy, Seaborn and machine learning prep.", fee: "3000", seats: 3, total: 25, status: "Running", image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=700&q=80" },
+  { id: "genomics_bio", title: "Genomics & Sequence Analysis", tag: "LIFE SCIENCES", desc: "Sequence alignment, phylogenetic inference, gene family identification and motif analysis.", fee: "3500", seats: 13, total: 25, status: "Upcoming", image: "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=700&q=80" },
+  { id: "ngs_analysis", title: "NGS & RNA-Seq Data Analysis", tag: "GENOMICS", desc: "Quality control, mapping (HISAT2), quantification, and differential expression with DESeq2.", fee: "4000", seats: 9, total: 20, status: "Upcoming", image: "https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=700&q=80" },
+  { id: "cadd_drug", title: "Computer-Aided Drug Design (CADD)", tag: "CHEMINFORMATICS", desc: "Target identification, molecular docking (AutoDock Vina), ADMET and ligand screening.", fee: "3800", seats: 7, total: 20, status: "Running", image: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=700&q=80" },
+  { id: "cancer_genomics", title: "Cancer Genomics & Precision Oncology", tag: "CLINICAL BIO", desc: "Oncogenic mutation profiling, TCGA/GEO data mining, biomarker discovery and survival analysis.", fee: "4200", seats: 6, total: 18, status: "Upcoming", image: "https://images.unsplash.com/photo-1576086213369-97a306d36557?auto=format&fit=crop&w=700&q=80" },
+  { id: "md_simulation", title: "Molecular Dynamics (MD) Simulation", tag: "BIOPHYSICS", desc: "Protein-ligand complex dynamics, stability analysis using GROMACS and trajectory analysis.", fee: "4500", seats: 5, total: 15, status: "Running", image: "https://images.unsplash.com/photo-1507668077129-56e32842fceb?auto=format&fit=crop&w=700&q=80" },
+  { id: "metagenomics", title: "Metagenomics & Microbiome Analysis", tag: "MICROBIOME", desc: "16S rRNA sequencing analysis, taxonomic classification, QIIME2 and alpha/beta diversity.", fee: "3800", seats: 8, total: 20, status: "Upcoming", image: "https://images.unsplash.com/photo-1581093588401-fbb62a02f120?auto=format&fit=crop&w=700&q=80" },
+  { id: "ml_healthcare", title: "Machine Learning in Healthcare", tag: "AI & ML", desc: "Classification models, neural networks and predictive biomarker modeling with Scikit-learn.", fee: "3500", seats: 11, total: 25, status: "Running", image: "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?auto=format&fit=crop&w=700&q=80" },
+  { id: "public_health", title: "Public Health Data Analysis", tag: "HEALTH DATA", desc: "Epidemiological study design, OR/RR calculation, logistic regression and ICMJE tables.", fee: "2500", seats: 16, total: 30, status: "Running", image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=700&q=80" },
+  { id: "spss_stata", title: "Statistical Modelling with SPSS / STATA", tag: "STATISTICS", desc: "Parametric/non-parametric tests, ANOVA, linear regression and thesis chapter-4 drafting.", fee: "2200", seats: 8, total: 25, status: "Running", image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=700&q=80" },
+  { id: "custom_team", title: "Training for your Team / Lab", tag: "WORKSHOP", desc: "Tailored bio-computation workshops for university departments, research labs and groups.", fee: "Custom", seats: 20, total: 50, status: "Custom", image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=700&q=80" }
+];
+
+export default function App() {
+  const [adminUser, setAdminUser] = useState(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [editModalConfig, setEditModalConfig] = useState(null);
+  const [teamMemberEditConfig, setTeamMemberEditConfig] = useState(null);
+  const [showPubModal, setShowPubModal] = useState(false);
+  const [showNoticeModal, setShowNoticeModal] = useState(false);
+
+  // Dynamic States (Firebase Synced)
+  const [liveStats, setLiveStats] = useState(defaultStats);
+  const [liveCourses, setLiveCourses] = useState(ibaiInitialCourses);
+  const [liveNotices, setLiveNotices] = useState(null);
+  const [livePublications, setLivePublications] = useState(null);
+  const [liveContact, setLiveContact] = useState({
+    email: "ffa.math@just.edu.bd",
+    phone: "+880 1747-091195",
+    office: "Room 532, Bangabandhu Academic Bldg, JUST"
+  });
+
+  // 12 Team Members
+  const defaultTeamMembers = [
+    { id: "musa", name: "Md. Nahid Hasan Shuvo", role: "Research Assistant", field: "Bioinformatics & Plant Genomics", bio: "Genome-wide identification, RNA interference (RNAi) families, and molecular target modeling in crop improvement.", image: "https://scholar.googleusercontent.com/citations?view_op=view_photo&user=WTCJf_k-ccsC&citpid=2", scholar: "https://scholar.google.com/citations?user=WTCJf_k-ccsC&hl=en", rg: "" },
+    { id: "riday", name: "Riday Hossain", role: "Research Assistant", field: "CADD & Molecular Modeling", bio: "Computational drug discovery, target identification, molecular docking and ADMET assessment for novel therapeutics.", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80", scholar: "", rg: "https://www.researchgate.net/profile/Riday-Hossain" },
+    { id: "alamin", name: "Mahmudul Hasan", role: "Research Assistant", field: "Applied Mathematics & Modeling", bio: "Statistical data inference, biomedical regression modeling, and machine learning architectures for health data.", image: "https://scholar.googleusercontent.com/citations?view_op=view_photo&user=c-suH8kAAAAJ&citpid=2", scholar: "https://scholar.google.com/citations?user=c-suH8kAAAAJ&hl=en", rg: "" },
+    { id: "slot4", name: "Abu Musa", role: "Genomic Data Scientist", field: "Transcriptomics & RNA-Seq", bio: "Processing bulk RNA-Seq datasets, differential expression analysis and metabolic pathway visualization.", image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80", scholar: "#", rg: "#" },
+    { id: "slot5", name: "Research Assistant", role: "Clinical Biostatistics", field: "Epidemiological Data Modeling", bio: "Multivariable disease modeling, questionnaire survey analytics, and ICMJE medical table construction.", image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80", scholar: "#", rg: "#" },
+    { id: "slot6", name: "Research Assistant", role: "Molecular Dynamics", field: "GROMACS & Bio-Simulation", bio: "Macro-molecular dynamics trajectory analysis, binding free energy estimations, and protein stability.", image: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=200&q=80", scholar: "#", rg: "#" },
+    { id: "slot7", name: "Research Assistant", role: "Computational Genomics", field: "Metagenomics & Microbiome", bio: "Microbiome sequencing pipelines, 16S taxonomic profiling, and environmental microbial diversity modeling.", image: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=200&q=80", scholar: "#", rg: "#" },
+    { id: "slot8", name: "Research Assistant", role: "AI in Healthcare", field: "Deep Learning & Imaging", bio: "Convolutional neural networks for medical diagnostic imaging and multi-omics biological data integration.", image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80", scholar: "#", rg: "#" },
+    { id: "slot9", name: "Research Assistant", role: "Cheminformatics", field: "Structure-Based Drug Design", bio: "Virtual high-throughput screening, pharmacophore mapping, and in silico pharmacokinetic evaluations.", image: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=200&q=80", scholar: "#", rg: "#" },
+    { id: "slot10", name: "Research Assistant", role: "Biostatistics", field: "Survival Analysis & Biometrics", bio: "Time-to-event analysis, clinical trial biometrics, and parametric hazard modeling for cancer prognostics.", image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80", scholar: "#", rg: "#" },
+    { id: "slot11", name: "Research Assistant", role: "Systems Biology", field: "Gene Regulatory Networks", bio: "Network topology inference, protein complex interaction dynamics, and pathway enrichment analytics.", image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80", scholar: "#", rg: "#" },
+    { id: "slot12", name: "Research Assistant", role: "Public Health Modeling", field: "Spatial Epidemiology & GIS", bio: "Geospatial disease mapping, infectious disease transmission forecasting, and public health risk assessment.", image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=200&q=80", scholar: "#", rg: "#" }
+  ];
+
+  const [liveTeam, setLiveTeam] = useState(defaultTeamMembers);
+  const [livePi, setLivePi] = useState({
+    name: "Fee Faysal Ahmed",
+    role: "Principal Investigator & Lecturer",
+    dept: "Dept. of Mathematics · Systems Biology & Computational Genomics",
+    image: "/feefaysal.jpg",
+    email: "ffa.math@just.edu.bd",
+    scholar: links.googleScholar,
+    rg: links.researchGate
+  });
+
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [piDetailsOpen, setPiDetailsOpen] = useState(false);
+  const [researchChoiceOpen, setResearchChoiceOpen] = useState(false);
+  const [navResearchOpen, setNavResearchOpen] = useState(false);
+  const [page, setPage] = useState("home");
+  const goToPage = (nextPage) => { changePage(nextPage); setMenuOpen(false); setMoreOpen(false); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  const [query, setQuery] = useState("");
+  const [year, setYear] = useState("All");
+  const [selectedServices, setSelectedServices] = useState([]);
+  const topicRailRef = useRef(null);
+
+  // Training modal states
+  const [activeModalCourse, setActiveModalCourse] = useState(null);
+  const [isFormSubmitted, setIsFormSubmitted] = useState(false);
+  const [applicant, setApplicant] = useState({ name: "", email: "", phone: "", institution: "", message: "" });
+
+  const openCourseModal = (courseData) => {
+    setActiveModalCourse(courseData);
+    setIsFormSubmitted(false);
+  };
+
+  const closeCourseModal = () => {
+    setActiveModalCourse(null);
+    setIsFormSubmitted(false);
+  };
+
+  // Firebase Realtime Listener
+  useEffect(() => {
+    const unsubAuth = onAuthStateChanged(auth, (user) => setAdminUser(user));
+
+    const unsubSettings = onSnapshot(collection(db, "settings"), (snapshot) => {
+      snapshot.docs.forEach((docItem) => {
+        if (docItem.id === "stats") {
+          const d = docItem.data();
+          setLiveStats([
+            { value: d.publications || "54", label: "ResearchGate publications", note: "Profile figure observed Oct 2026" },
+            { value: d.citations || "626", label: "Citations", note: "ResearchGate profile figure" },
+            { value: d.reads || "16.3K+", label: "ResearchGate reads", note: "Profile figure observed Oct 2026" },
+            { value: d.interests || "8+", label: "Research interests", note: "Bioinformatics to deep learning" }
+          ]);
+        }
+        if (docItem.id === "ibai_courses") {
+          const data = docItem.data();
+          setLiveCourses(prev => prev.map(c => data[c.id] ? { ...c, fee: data[c.id].fee ?? c.fee, seats: data[c.id].seats ?? c.seats } : c));
+        }
+        if (docItem.id === "lab_team") setLiveTeam(docItem.data().members || defaultTeamMembers);
+        if (docItem.id === "pi_profile") setLivePi(docItem.data());
+        if (docItem.id === "lab_contact") setLiveContact(docItem.data());
+        if (docItem.id === "publications_data") setLivePublications(docItem.data().list || publications);
+      });
+    });
+
+    const unsubNotices = onSnapshot(collection(db, "notices"), (snapshot) => {
+      if (!snapshot.empty) setLiveNotices(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+
+    return () => { unsubAuth(); unsubSettings(); unsubNotices(); };
+  }, []);
+
+  const saveLiveSetting = async (docId, data) => {
+    try {
+      if (docId === "stats") {
+        setLiveStats([
+          { value: data.publications || "54", label: "ResearchGate publications", note: "Profile figure observed Oct 2026" },
+          { value: data.citations || "626", label: "Citations", note: "ResearchGate profile figure" },
+          { value: data.reads || "16.3K+", label: "ResearchGate reads", note: "Profile figure observed Oct 2026" },
+          { value: data.interests || "8+", label: "Research interests", note: "Bioinformatics to deep learning" }
+        ]);
+      }
+      await setDoc(doc(db, "settings", docId), data, { merge: true });
+      alert("সফলভাবে ওয়েবসাইটে আপডেট ও সেভ হয়েছে! ✓");
+    } catch (err) {
+      console.error(err);
+      alert("সেভ করতে সমস্যা হয়েছে: " + err.message);
+    }
+  };
+
+  const updateCourseLive = async (courseId, newFee, newSeats) => {
+    setLiveCourses(prev => prev.map(c => c.id === courseId ? { ...c, fee: newFee, seats: Number(newSeats) } : c));
+    try {
+      await setDoc(doc(db, "settings", "ibai_courses"), {
+        [courseId]: { fee: newFee, seats: Number(newSeats) }
+      }, { merge: true });
+      alert("কোর্স ফি ও সিট সংখ্যা সফলভাবে আপডেট হয়েছে! ✓");
+    } catch (err) {
+      alert("আপডেট এরর: " + err.message);
+    }
+  };
+
+  const saveTeamMemberData = async (updatedMember) => {
+    const updatedList = liveTeam.map(m => m.id === updatedMember.id ? updatedMember : m);
+    setLiveTeam(updatedList);
+    await setDoc(doc(db, "settings", "lab_team"), { members: updatedList }, { merge: true });
+    alert("টিম সদস্যের তথ্য ও ছবি সফলভাবে সংরক্ষিত হয়েছে!");
+  };
+
+  const savePiData = async (updatedPi) => {
+    setLivePi(updatedPi);
+    await setDoc(doc(db, "settings", "pi_profile"), updatedPi, { merge: true });
+    alert("প্রিন্সিপাল ইনভেস্টিগেটরের প্রোফাইল ও ছবি সংরক্ষিত হয়েছে!");
+  };
+
+  const changePage = (nextPage) => {
+    if (nextPage === page) { setMenuOpen(false); setMoreOpen(false); return; }
+    const update = () => setPage(nextPage);
+    if (document.startViewTransition && !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      document.startViewTransition(update);
+    } else {
+      update();
+    }
+  };
+
+  const serviceOptions = [
+    { title: "IELTS & Academic English Coaching", category: "GLOBAL MOBILITY", text: "Targeted Band 7.5+ preparation, scientific writing feedback, and one-on-one speaking practice for study abroad.", icon: BookOpen, image: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=700&q=80", color: "blue" },
+    { title: "Global Fellowship & Funded PhD Guidance", category: "HIGHER STUDY", text: "Strategic mentorship for Erasmus Mundus, DAAD, Fulbright and Commonwealth PhD/Postdoc grant applications.", icon: GraduationCap, image: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=700&q=80", color: "mint" },
+    { title: "Bio-Data Science Research Internship", category: "RESEARCH TRACK", text: "Live co-mentored research projects on omics data analysis, variant calling, and peer-reviewed publication track.", icon: Dna, image: "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=700&q=80", color: "violet" },
+    { title: "SOP, Motivation Letter & CV Review", category: "ACADEMIC ADVISORY", text: "Detailed professional polish for Statement of Purpose (SOP), Research Proposals, and European-standard Academic CVs.", icon: FileText, image: "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=700&q=80", color: "peach" },
+    { title: "Thesis Statistical Consultation", category: "DATA METHODS", text: "End-to-end guidance for M.Sc/Ph.D. statistical inference, regression diagnostics, and thesis result interpretation.", icon: ChartNoAxesCombined, image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=700&q=80", color: "blue" },
+    { title: "In Silico Drug Target & Docking Screening", category: "CHEMINFORMATICS", text: "Virtual screening, AutoDock Vina molecular docking, ADMET assessment, and protein-protein interaction networks.", icon: FlaskConical, image: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=700&q=80", color: "coral" },
+    { title: "Genomic Pipeline & Server Deployment", category: "BIOINFORMATICS", text: "Automated Nextflow/Snakemake workflows deployment for RNA-Seq, Metagenomics, and GWAS on institutional HPC.", icon: Network, image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=700&q=80", color: "mint" },
+    { title: "Institutional Research Collaboration", category: "COLLABORATION", text: "Joint academic projects, co-PI grant proposals, and departmental bio-computational laboratory training bootcamps.", icon: Users, image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=700&q=80", color: "violet" },
+  ];
+
+  const toggleService = (title) => setSelectedServices((current) => current.includes(title) ? current.filter((item) => item !== title) : [...current, title]);
+  const activeNotices = liveNotices || defaultNotices;
+  const filteredPublications = (livePublications || publications).filter((p) =>
+    (year === "All" || p.year === year) &&
+    `${p.title} ${p.journal} ${p.tag}`.toLowerCase().includes(query.toLowerCase())
+  );
+  const closeMenu = () => { setMenuOpen(false); setMoreOpen(false); };
+
+  return (
+    <main data-page={page}>
+      {/* ── HEADER ── */}
+      <header className="site-header">
+        <a className="brand" href="#home" onClick={closeMenu}>
+          <span className="brand-mark lab-brand-mark">
+            <img src="/Final.jpg" alt="Data Science & Biochemistry Lab" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+            <Atom className="brand-fallback-icon" size={24} />
+          </span>
+          <span className="brand-name">
+            DATA SCIENCE RESEARCH & TRAINING LAB
+            <span>JUST · INTERDISCIPLINARY COMPUTATIONAL RESEARCH</span>
+          </span>
+        </a>
+
+        <button className="mobile-menu-button" onClick={() => setMenuOpen(!menuOpen)}>
+          {menuOpen ? <X /> : <Menu />}
+        </button>
+
+        <nav className={menuOpen ? "navigation navigation-open" : "navigation"}>
+          <a className={page === "home" ? "active" : ""} href="#home" onClick={(e) => { e.preventDefault(); goToPage("home"); }}>Home</a>
+          <a className={page === "profile" ? "active" : ""} href="#about" onClick={(e) => { e.preventDefault(); goToPage("profile"); }}>Profile</a>
+          
+          <div className="nav-dropdown-wrap" style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
+            <button 
+              type="button" 
+              onClick={() => setNavResearchOpen(!navResearchOpen)}
+              style={{ minHeight: "38px", display: "inline-flex", alignItems: "center", gap: "5px", padding: "0 12px", borderRadius: "999px", background: "none", border: "none", color: "#526955", fontSize: "14.5px", fontWeight: "750", cursor: "pointer" }}
+            >
+              Research <ChevronRight size={11} style={{ transform: navResearchOpen ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.2s" }}/>
+            </button>
+            {navResearchOpen && (
+              <div style={{ position: "absolute", top: "calc(100% + 8px)", left: "0", background: "#fbfdf9", border: "1px solid rgba(49,83,52,0.18)", borderRadius: "14px", padding: "8px", display: "flex", flexDirection: "column", gap: "4px", minWidth: "185px", boxShadow: "0 14px 35px rgba(20,40,25,0.15)", zIndex: 1000 }}>
+                <a href={links.googleScholar} target="_blank" rel="noreferrer" onClick={() => setNavResearchOpen(false)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", borderRadius: "8px", color: "#16311e", fontSize: "13px", fontWeight: "750", textDecoration: "none" }}>
+                  🎓 Google Scholar <ExternalLink size={12}/>
+                </a>
+                <a href={links.researchGate} target="_blank" rel="noreferrer" onClick={() => setNavResearchOpen(false)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", borderRadius: "8px", color: "#16311e", fontSize: "13px", fontWeight: "750", textDecoration: "none" }}>
+                  🔬 ResearchGate <ExternalLink size={12}/>
+                </a>
+              </div>
+            )}
+          </div>
+
+          <a className={page === "publications" ? "active" : ""} href="#publications" onClick={(e) => { e.preventDefault(); goToPage("publications"); }}>Publications</a>
+          <a className={page === "awards" ? "active" : ""} href="#awards" onClick={(e) => { e.preventDefault(); goToPage("awards"); }}>Awards</a>
+          <a className={page === "training" ? "active" : ""} href="#training" onClick={(e) => { e.preventDefault(); goToPage("training"); }}>Training & IBAI</a>
+          <a className={page === "notices" ? "active" : ""} href="#notices" onClick={(e) => { e.preventDefault(); goToPage("notices"); }}>Notices</a>
+          <a className={page === "services" ? "active" : ""} href="#services" onClick={(e) => { e.preventDefault(); goToPage("services"); }}>Services</a>
+          <a className="nav-contact" href="#contact" onClick={(e) => { e.preventDefault(); goToPage("contact"); }}>Contact <ArrowUpRight size={14} /></a>
+
+          <div className="more-menu-wrap">
+            <button className="more-menu-button" onClick={() => setMoreOpen(!moreOpen)}><MoreHorizontal size={23}/></button>
+            {moreOpen && <div className="more-menu-panel">
+              <span className="more-menu-label">EXPLORE PROFILE</span>
+              <button onClick={() => goToPage("interests")}>Research interests</button>
+              <button onClick={() => goToPage("methods")}>Methods & software</button>
+              <button onClick={() => goToPage("awards")}>Awards & service</button>
+              <button onClick={() => goToPage("training")}>Training sessions</button>
+              <button onClick={() => goToPage("notices")}>Notices & documents</button>
+              <button onClick={() => goToPage("services")}>Services & collaboration</button>
+              <button onClick={() => { setShowLoginModal(true); setMoreOpen(false); }} style={{ color: "#2f5a3d", fontWeight: "bold", textAlign: "left", width: "100%", padding: "10px" }}>
+                ✏️ Admin Live Edit Mode
+              </button>
+              <a href={links.googleScholar} target="_blank" rel="noreferrer" onClick={closeMenu}>Google Scholar <ExternalLink size={14}/></a>
+              <a href={links.researchGate} target="_blank" rel="noreferrer" onClick={closeMenu}>ResearchGate <ExternalLink size={14}/></a>
+            </div>}
+          </div>
+        </nav>
+      </header>
+
+      {/* ── BACK BUTTON ── */}
+      {page !== "home" && (
+        <div className="page-back-bar page-width">
+          <button type="button" className="global-back-button" onClick={() => goToPage("home")} title="Go back to Home">
+            <ChevronLeft size={18} />
+            <span>Back to Home</span>
+          </button>
+          <span className="current-page-tag">VIEWING / <strong>{page.toUpperCase()}</strong></span>
+        </div>
+      )}
+
+      {/* ── HERO SECTION (WITH PHONE FRAME) ── */}
+      <section className="hero hero-reference-layout" id="home">
+        <VideoBackground className="hero-full-video-background" />
+
+        <div className="hero-phone-mockup" aria-label="Mobile research portfolio preview">
+          <div className="phone-frame">
+            <div className="phone-island"></div>
+            <div className="phone-status"><span>9:41</span><span>▮▮ ◉ ▰</span></div>
+            <div className="phone-brand">
+              <span className="phone-brand-icon"><Dna size={15}/></span>
+              <strong>Training Hub</strong>
+              <span className="phone-brand-menu"><Menu size={16}/></span>
+            </div>
+            <div className="phone-training-heading">
+              <span>LEARN & APPLY</span>
+              <strong>Training sessions</strong>
+              <small>Choose a topic to explore</small>
+            </div>
+            <div className="phone-training-list">
+              {[
+                {n:"01",title:"R Programming & Biostatistics",tone:"mint"},
+                {n:"02",title:"Python for Data Analysis",tone:"blue"},
+                {n:"03",title:"Genomics & Bioinformatics",tone:"violet"},
+                {n:"04",title:"Public Health Data Analysis",tone:"peach"},
+                {n:"05",title:"Machine Learning for Research",tone:"mint"},
+                {n:"06",title:"Deep Learning Fundamentals",tone:"blue"},
+                {n:"07",title:"SPSS / STATA Modelling",tone:"violet"},
+                {n:"08",title:"Custom Research Workshop",tone:"peach"}
+              ].map(item => (
+                <button type="button" key={item.n} className={`phone-training-option phone-tone-${item.tone}`} onClick={() => goToPage("training")}>
+                  <span>{item.n}</span>
+                  <strong>{item.title}</strong>
+                  <ArrowRight size={13}/>
+                </button>
+              ))}
+            </div>
+            <button type="button" className="phone-training-cta" onClick={() => goToPage("training")}>
+              View all training sessions <ArrowUpRight size={13}/>
+            </button>
+          </div>
+        </div>
+
+        <div className="hero-content page-width">
+          <div className="hero-topline"><span className="status-dot" /> JUST · BIOINFORMATICS & INTELLIGENCE</div>
+          <h1 className="adobe-max-title">Where Data Meets <span className="adobe-gradient">Discovery.</span></h1>
+          <p className="adobe-max-lead">Pioneering the intersection of statistical modeling, genomics, and artificial intelligence at Jashore University of Science and Technology.</p>
+          <div className="hero-actions">
+            <button type="button" className="button button-primary adobe-btn" onClick={() => setResearchChoiceOpen(true)}>
+              Explore Research <ArrowUpRight size={17} />
+            </button>
+            <a className="button button-glass adobe-btn-ghost" href="#publications" onClick={(e) => { e.preventDefault(); goToPage("publications"); }}>
+              Publications <ArrowRight size={16} />
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* ── HOME GLASS INTRO SECTION ── */}
+      {page === "home" && (
+        <HomeGlassIntro goToPage={goToPage} stats={liveStats} />
+      )}
+
+
+      {/* ── TOPIC EXPLORER (MARQUEE) ── */}
+      
+
+      {/* ── 2. HOME RUNNING TRAINING TICKER: 12 FULL IBAI COURSES (CONTINUOUS MOVING) ── */}
+      {page === "home" && (
+        <section className="home-training-ticker-section page-width" style={{ padding: "40px 0 65px" }}>
+          <div className="section-heading" style={{ marginBottom: "24px" }}>
+            <span className="eyebrow" style={{ color: "#255734" }}>BIOINFORMATICS & AI INTERNSHIP (IBAI)</span>
+            <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: "850", color: "#142c1b", margin: "6px 0 4px" }}>
+              Hands-On Research & <span style={{ color: "#2563eb" }}>Training Programs.</span>
+            </h2>
+            <p style={{ fontSize: "14px", color: "#5a7362", margin: 0 }}>
+              Practical bio-data computation, AI workflows, and applied biostatistics—continuously running for aspiring researchers.
+            </p>
+          </div>
+
+          <div className="dawn-live-ticker-wrap">
+            <div className="dawn-live-ticker-track">
+              {liveCourses.concat(liveCourses).map((course, idx) => (
+                <div 
+                  className="dawn-service-card" 
+                  key={course.id + "-" + idx}
+                  onClick={() => goToPage("training")}
+                >
+                  <div className="dawn-service-media" style={{ backgroundImage: `url("${course.image}")` }}>
+                    <span className="dawn-service-tag">{course.tag}</span>
+                  </div>
+                  <div className="dawn-service-body">
+                    <h3 className="dawn-service-title">{course.title}</h3>
+                    <p className="dawn-service-desc">{course.desc}</p>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px dashed #d2e8d9", paddingTop: "8px", marginTop: "auto", fontSize: "12px", color: "#166534", fontWeight: "bold" }}>
+                      <span>Fee: {course.fee === "Custom" ? "Custom" : "৳ " + course.fee + " BDT"}</span>
+                      <span>Seats: {course.seats} left</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── STATS STRIP ── */}
+      <section className="stats-strip" style={{ position: "relative" }}>
+        {adminUser && (
+          <button onClick={() => setEditModalConfig({
+            title: "পরিসংখ্যান সংখ্যা এডিট করুন",
+            fields: [
+              { key: "publications", label: "ResearchGate Publications" },
+              { key: "citations", label: "Total Citations" },
+              { key: "reads", label: "ResearchGate Reads" },
+              { key: "interests", label: "Research Interests Count" },
+            ],
+            initialData: { publications: liveStats[0].value, citations: liveStats[1].value, reads: liveStats[2].value, interests: liveStats[3].value },
+            onSave: (data) => saveLiveSetting("stats", data)
+          })} style={{ position: "absolute", top: "10px", right: "20px", zIndex: 10, background: "#245032", color: "#fff", border: "none", padding: "6px 14px", borderRadius: "999px", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>
+            <Edit3 size={12}/> Edit Numbers
+          </button>
+        )}
+        <div className="page-width stats-grid">
+          {liveStats.map((item) => (
+            <div className="stat-item" key={item.label}>
+              <span className="stat-number">{item.value}</span>
+              <span className="stat-label">{item.label}</span>
+              <span className="stat-note">{item.note}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── PROFILE & TEAM ── */}
+      <section className="intro-section page-width" id="about" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "45px", paddingTop: "50px" }}>
+        <div style={{ textAlign: "center", maxWidth: "780px", width: "100%", background: "#ffffff", border: "1.5px solid rgba(49,83,52,0.18)", borderRadius: "28px", padding: "36px 26px", boxShadow: "0 18px 45px rgba(0,0,0,0.06)", position: "relative" }}>
+          {adminUser && (
+            <button onClick={() => setTeamMemberEditConfig({ title: "প্রিন্সিপাল ইনভেস্টিগেটরের প্রোফাইল এডিট", data: livePi, isPi: true })} style={{ position: "absolute", top: "18px", right: "20px", background: "#245032", color: "#fff", border: "none", padding: "6px 14px", borderRadius: "999px", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>
+              <Edit3 size={11}/> Edit PI
+            </button>
+          )}
+
+          <span style={{ font: "11px var(--mono)", fontWeight: "800", color: "#1e528a", background: "#eef3fa", padding: "5px 16px", borderRadius: "999px", display: "inline-block", marginBottom: "12px" }}>
+            OUR TEAM & LEADERSHIP
+          </span>
+          <h2 style={{ fontSize: "28px", fontWeight: "850", color: "#111", margin: "0 0 6px" }}>Meet the Principal Investigator</h2>
+          
+          <div style={{ position: "relative", width: "145px", height: "145px", margin: "0 auto 16px" }}>
+            <img src={livePi.image} alt={livePi.name} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%", border: "4px solid #ffffff", boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }} onError={(e) => { e.currentTarget.src = "/feefaysal.jpg"; }} />
+            {adminUser && (
+              <label title="Change Profile Picture" style={{ position: "absolute", bottom: "4px", left: "4px", width: "34px", height: "34px", borderRadius: "50%", background: "#245032", color: "#fff", zIndex: 10, display: "grid", placeItems: "center", cursor: "pointer", border: "2px solid #fff" }}>
+                <Camera size={16}/>
+                <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => savePiData({ ...livePi, image: reader.result });
+                    reader.readAsDataURL(file);
+                  }
+                }} />
+              </label>
+            )}
+          </div>
+
+          <h3 style={{ fontSize: "22px", fontWeight: "850", color: "#142d1c", margin: "0 0 4px" }}>{livePi.name}</h3>
+          <span style={{ fontSize: "14px", fontWeight: "800", color: "#2563eb", display: "block", marginBottom: "4px" }}>{livePi.role}</span>
+          <small style={{ fontSize: "12.5px", color: "#556f5c", display: "block", marginBottom: "16px" }}>{livePi.dept}</small>
+
+          <div style={{ display: "flex", justifyContent: "center", gap: "8px", flexWrap: "wrap", marginBottom: "20px" }}>
+            <a href={"mailto:" + livePi.email} style={{ padding: "6px 16px", borderRadius: "999px", background: "#e8f0fe", color: "#1d4ed8", fontSize: "12px", fontWeight: "750", textDecoration: "none" }}>Email</a>
+            <a href={livePi.scholar || links.googleScholar} target="_blank" rel="noreferrer" style={{ padding: "6px 16px", borderRadius: "999px", background: "#f3e8ff", color: "#7e22ce", fontSize: "12px", fontWeight: "750", textDecoration: "none" }}>Google Scholar ↗</a>
+            <a href={livePi.rg || links.researchGate} target="_blank" rel="noreferrer" style={{ padding: "6px 16px", borderRadius: "999px", background: "#eef5e8", color: "#234f30", fontSize: "12px", fontWeight: "750", textDecoration: "none" }}>ResearchGate ↗</a>
+            <a href={links.just} target="_blank" rel="noreferrer" style={{ padding: "6px 16px", borderRadius: "999px", background: "#f1f5f9", color: "#0f172a", fontSize: "12px", fontWeight: "750", textDecoration: "none" }}>Official JUST Profile ↗</a>
+          </div>
+
+          <button 
+            type="button" 
+            onClick={() => setPiDetailsOpen(!piDetailsOpen)} 
+            style={{ background: piDetailsOpen ? "#1e4d2b" : "#245032", color: "#fff", border: "none", padding: "10px 24px", borderRadius: "999px", fontSize: "13px", fontWeight: "800", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px", boxShadow: "0 4px 14px rgba(36,80,50,0.25)" }}
+          >
+            {piDetailsOpen ? "▲ Hide Full Dossier" : "▼ View Full PI Profile & Thesis Details"}
+          </button>
+
+          {/* ── যবিপ্রবি অফিসিয়াল রেকর্ড ড্রিল-ডাউন ── */}
+          {piDetailsOpen && (
+            <div style={{ marginTop: "28px", paddingTop: "24px", borderTop: "1.5px dashed rgba(49,83,52,0.2)", textAlign: "left", animation: "page-arrive 0.3s ease" }}>
+              <div style={{ marginBottom: "22px" }}>
+                <span className="eyebrow" style={{ color: "#255734" }}>FACULTY BIOGRAPHY & RESEARCH FOCUS</span>
+                <p style={{ fontSize: "13.5px", color: "#3f5647", lineHeight: "1.75", margin: "6px 0 0", textAlign: "justify" }}>
+                  Fee Faysal Ahmed is a Lecturer in the Department of Mathematics at Jashore University of Science and Technology (JUST), Bangladesh. He specializes in computational biostatistics, machine learning in life sciences, and statistical genetics. His research bridges mathematical modeling and high-throughput biological data—focusing on genome-wide gene family identifications, protein-protein interaction (PPI) networks, and in silico drug discovery.
+                </p>
+              </div>
+
+              <div style={{ background: "#f8fbf7", border: "1.5px solid rgba(49,83,52,0.2)", borderRadius: "16px", padding: "18px 20px", marginBottom: "22px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+                  <Atom size={20} color="#255734" />
+                  <strong style={{ fontSize: "11px", font: "var(--mono)", color: "#1b4d2a" }}>M.SC. THESIS RESEARCH (DISTINCTION)</strong>
+                </div>
+                <h4 style={{ fontSize: "15.5px", fontWeight: "800", color: "#142d1c", margin: "0 0 6px" }}>
+                  Protein-Protein Interactions Prediction Using Statistical Modeling and Its Implications in Drug Discovery
+                </h4>
+                <a href={links.just} target="_blank" rel="noreferrer" style={{ fontSize: "12px", fontWeight: "bold", color: "#255734", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                  Verified on JUST University Portal <ExternalLink size={12}/>
+                </a>
+              </div>
+
+              <div style={{ marginBottom: "22px" }}>
+                <span className="eyebrow" style={{ color: "#255734" }}>ACADEMIC QUALIFICATIONS</span>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "12px", marginTop: "8px" }}>
+                  <div style={{ background: "#ffffff", border: "1px solid #dce8df", borderRadius: "12px", padding: "14px" }}>
+                    <strong style={{ fontSize: "14px", color: "#16311e", display: "block" }}>M.Sc. in Statistics (Thesis Track)</strong>
+                    <span style={{ fontSize: "12px", color: "#556f5c" }}>University of Rajshahi (2016–2017)</span>
+                    <small style={{ fontSize: "11px", color: "#1b4d2a", fontWeight: "bold", display: "block" }}>CGPA: 3.73 / 4.00 · 1st Class</small>
+                  </div>
+                  <div style={{ background: "#ffffff", border: "1px solid #dce8df", borderRadius: "12px", padding: "14px" }}>
+                    <strong style={{ fontSize: "14px", color: "#16311e", display: "block" }}>B.Sc. (Honours) in Statistics</strong>
+                    <span style={{ fontSize: "12px", color: "#556f5c" }}>University of Rajshahi (2012–2016)</span>
+                    <small style={{ fontSize: "11px", color: "#1b4d2a", fontWeight: "bold", display: "block" }}>1st Class 1st · Faculty Dean’s Award</small>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ padding: "16px", background: "#f4f8f3", borderRadius: "14px", border: "1px solid #d5e6db", marginBottom: "20px" }}>
+                <span style={{ fontSize: "11px", font: "var(--mono)", fontWeight: "bold", color: "#255734", display: "block", marginBottom: "8px" }}>COURSES TAUGHT AT JUST</span>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                  {["Biostatistics", "Probability Theory", "Numerical Analysis", "Linear Algebra", "Statistical Inference", "Applied Regression"].map((course, i) => (
+                    <span key={i} style={{ fontSize: "11.5px", background: "#fff", border: "1px solid #c8dcd0", padding: "3px 8px", borderRadius: "6px", color: "#1a4023", fontWeight: "600" }}>✓ {course}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 12 RESEARCH ASSISTANTS */}
+        <div style={{ width: "100%" }}>
+          <div style={{ textAlign: "center", marginBottom: "28px" }}>
+            <span className="eyebrow" style={{ color: "#255734" }}>LAB FELLOWS & SCHOLARS</span>
+            <h2 style={{ fontSize: "28px", fontWeight: "850", color: "#142c1b", margin: "6px 0 4px" }}>Research Assistants (12 Members)</h2>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(310px, 1fr))", gap: "22px" }}>
+            {liveTeam.map((member) => (
+              <div key={member.id} style={{ background: "#ffffff", borderRadius: "20px", border: "1.5px solid rgba(49,83,52,0.16)", padding: "22px", boxShadow: "0 8px 24px rgba(0,0,0,0.05)", display: "flex", flexDirection: "column", justifyContent: "space-between", position: "relative" }}>
+                {adminUser && (
+                  <button onClick={() => setTeamMemberEditConfig({ title: "সদস্যের তথ্য ও ছবি এডিট", data: member, isPi: false })} style={{ position: "absolute", top: "14px", right: "14px", background: "#f0f5ed", border: "1px solid #c5d9c8", color: "#234f30", padding: "4px 10px", borderRadius: "999px", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>
+                    <Edit3 size={11} /> Edit
+                  </button>
+                )}
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "12px" }}>
+                    <div style={{ position: "relative" }}>
+                      <img src={member.image} alt={member.name} style={{ width: "62px", height: "62px", borderRadius: "50%", objectFit: "cover", border: "2px solid #38ef7d" }} onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"; }} />
+                      {adminUser && (
+                        <label title="Change Photo" style={{ position: "absolute", bottom: "-2px", right: "-2px", width: "24px", height: "24px", borderRadius: "50%", background: "#245032", color: "#fff", display: "grid", placeItems: "center", cursor: "pointer", border: "1.5px solid #fff" }}>
+                          <Camera size={12}/>
+                          <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onloadend = () => saveTeamMemberData({ ...member, image: reader.result });
+                              reader.readAsDataURL(file);
+                            }
+                          }} />
+                        </label>
+                      )}
+                    </div>
+                    <div>
+                      <h4 style={{ fontSize: "17px", fontWeight: "850", color: "#16311e", margin: "0 0 2px" }}>{member.name}</h4>
+                      <span style={{ fontSize: "12px", fontWeight: "750", color: "#2563eb", display: "block" }}>{member.role}</span>
+                      <small style={{ fontSize: "11px", color: "#5d7363" }}>{member.field}</small>
+                    </div>
+                  </div>
+                  <p style={{ fontSize: "12.5px", color: "#556f5c", lineHeight: "1.6", margin: "0 0 14px" }}>{member.bio}</p>
+                </div>
+
+                <div style={{ display: "flex", gap: "8px", paddingTop: "10px", borderTop: "1px dashed rgba(49,83,52,0.15)" }}>
+                  {member.scholar ? (
+                    <a href={member.scholar} target="_blank" rel="noreferrer" style={{ flex: 1, padding: "7px", borderRadius: "8px", background: "#f3e8ff", color: "#7e22ce", fontSize: "11px", fontWeight: "750", textDecoration: "none", textAlign: "center" }}>Scholar ↗</a>
+                  ) : <span style={{ flex: 1, padding: "7px", borderRadius: "8px", background: "#f8fbf7", color: "#8da491", fontSize: "11px", textAlign: "center" }}>No Scholar</span>}
+                  {member.rg ? (
+                    <a href={member.rg} target="_blank" rel="noreferrer" style={{ flex: 1, padding: "7px", borderRadius: "8px", background: "#eef5e8", color: "#234f30", fontSize: "11px", fontWeight: "750", textDecoration: "none", textAlign: "center" }}>ResearchGate ↗</a>
+                  ) : <span style={{ flex: 1, padding: "7px", borderRadius: "8px", background: "#f8fbf7", color: "#8da491", fontSize: "11px", textAlign: "center" }}>No RG</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── PUBLICATIONS ── */}
+      <section className="publication-section" id="publications">
+        <div className="page-width">
+          <div className="section-heading publication-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "16px" }}>
+            <div>
+              <span className="eyebrow">03 — SELECTED PUBLICATIONS</span>
+              <h2>Research that <span className="muted-text">travels.</span></h2>
+            </div>
+            {adminUser && (
+              <button onClick={() => setShowPubModal(true)} style={{ background: "#245032", color: "#fff", border: "none", padding: "8px 16px", borderRadius: "999px", fontSize: "12px", fontWeight: "bold", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                <Plus size={13}/> Add New Publication
+              </button>
+            )}
+          </div>
+          <div className="publication-list">
+            {filteredPublications.map((p, i) => (
+              <article className="publication-row" key={p.title}>
+                <span className="pub-year">{p.year}</span>
+                <div className="publication-main">
+                  <span className="pub-meta">{p.journal} <i>·</i> {p.tag}</span>
+                  <h3>{p.title}</h3>
+                  <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                    <a href={p.href} target="_blank" rel="noreferrer" className="publication-link">View publication <ArrowUpRight size={15}/></a>
+                    {adminUser && (
+                      <button onClick={async () => {
+                        if (window.confirm("এই পাবলিকেশনটি মুছে ফেলতে চান?")) {
+                          const currentList = livePublications || publications;
+                          const updated = currentList.filter(item => item.title !== p.title);
+                          setLivePublications(updated);
+                          await setDoc(doc(db, "settings", "publications_data"), { list: updated }, { merge: true });
+                          alert("পাবলিকেশন মুছে ফেলা হয়েছে!");
+                        }
+                      }} style={{ background: "#fee2e2", border: "1px solid #f87171", color: "#dc2626", padding: "4px 8px", borderRadius: "6px", cursor: "pointer" }} title="Delete">
+                        <Trash2 size={13} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── TRAINING & IBAI PROGRAMS ── */}
+      <section className="training-section page-width" id="training" style={{ paddingBottom: "100px", marginBottom: "40px" }}>
+        <div className="section-heading"><span className="eyebrow">BIOINFORMATICS & AI INTERNSHIP (IBAI)</span><h2>Professional Training & <span className="muted-text">Workshops.</span></h2></div>
+        <div className="training-grid">
+          {liveCourses.map((course) => (
+            <article className="training-card" key={course.id}>
+              <div className="training-card-banner" style={{ backgroundImage: `url('${course.image}')` }}>
+                <span className={`training-status-pill ${course.status.toLowerCase()}`}>{course.status}</span>
+              </div>
+              <div className="training-card-body">
+                <span className="training-sub-tag">{course.tag}</span>
+                <h3>{course.title}</h3>
+                <p>{course.desc}</p>
+                <div className="training-seat-available-box" style={{ display: "flex", flexDirection: "column", gap: "4px", padding: "8px 12px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontSize: "11px", color: "#617c69" }}>Course Fee:</span>
+                    <strong style={{ color: "#173b22", fontSize: "13px" }}>{course.fee === "Custom" ? "Custom" : `৳ ${course.fee} BDT`}</strong>
+                    {adminUser && <button onClick={() => { const f = prompt("ফি দিন:", course.fee); if (f !== null) updateCourseLive(course.id, f, course.seats); }} style={{ background: "none", border: "none", cursor: "pointer" }}>✏️</button>}
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontSize: "11px", color: "#617c69" }}>Seats:</span>
+                    <strong style={{ color: course.seats <= 5 ? "#d97706" : "#1b6334" }}>{course.seats} / {course.total} left</strong>
+                    {adminUser && <button onClick={() => { const s = prompt("সিট সংখ্যা দিন:", course.seats); if (s !== null) updateCourseLive(course.id, course.fee, s); }} style={{ background: "none", border: "none", cursor: "pointer" }}>✏️</button>}
+                  </div>
+                </div>
+                <button type="button" className="training-enquire-btn" onClick={() => openCourseModal({ title: course.title, seats: `${course.seats} left`, fee: `৳ ${course.fee} BDT` })}>
+                  Enquire & Enroll <ArrowUpRight size={14}/>
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {/* ── SERVICES ── */}
+      <section className="services-section page-width" id="services" style={{ paddingBottom: "95px", marginBottom: "30px" }}>
+        <div className="section-heading"><span className="eyebrow">SERVICES & COLLABORATION</span><h2>Choose what you <span className="muted-text">need support with.</span></h2></div>
+        <div className="services-grid">
+          {serviceOptions.map(({ title, category, text, icon: Icon, image, color }) => {
+            const selected = selectedServices.includes(title);
+            return (
+              <button type="button" key={title} className={`service-card service-${color}${selected ? " is-selected" : ""}`} style={{ backgroundImage: `linear-gradient(180deg, rgba(10,24,16,0.3) 10%, rgba(8,18,12,0.92) 65%), url("${image}")`, backgroundSize: "cover", backgroundPosition: "center", position: "relative", overflow: "hidden" }} onClick={() => toggleService(title)}>
+                <span className="service-icon"><Icon size={23}/></span>
+                <span className="service-category">{category}</span>
+                <strong>{title}</strong>
+                <span className="service-description">{text}</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ── NOTICES (WITH UPLOAD & DOWNLOAD) ── */}
+      <section className="notices-section page-width" id="notices">
+        <div className="section-heading notices-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "16px" }}>
+          <div>
+            <span className="eyebrow"><Bell size={15}/> OFFICIAL NOTICE BOARD</span>
+            <h2>Notices & <span className="muted-text">Downloads.</span></h2>
+          </div>
+          {adminUser && (
+            <button onClick={() => setShowNoticeModal(true)} style={{ background: "#4eed88", color: "#162e1e", border: "none", padding: "8px 16px", borderRadius: "8px", fontSize: "12px", fontWeight: "bold", cursor: "pointer" }}>
+              ➕ Upload Notice (Browse File)
+            </button>
+          )}
+        </div>
+        <div className="notice-board-container">
+          <div className="notice-list-table">
+            {activeNotices.map((notice, index) => (
+              <article className="notice-row" key={index}>
+                <div className="notice-left-col"><h3 className="notice-single-title">{notice.title}</h3></div>
+                <div className="notice-right-col" style={{ display: "flex", gap: "8px" }}>
+                  <a href={notice.file} target="_blank" rel="noreferrer" className="notice-btn notice-view-btn" style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                    <ExternalLink size={13}/> View Document
+                  </a>
+                  <a href={notice.file} download className="notice-btn" style={{ background: "#255734", color: "#fff", display: "inline-flex", alignItems: "center", gap: "4px", padding: "6px 12px", borderRadius: "8px", textDecoration: "none", fontSize: "12px", fontWeight: "bold" }}>
+                    <FileDown size={13}/> Download
+                  </a>
+                  {adminUser && notice.id && (
+                    <button onClick={async () => {
+                      if (window.confirm("এই নোটিশটি ডিলিট করতে চান?")) {
+                        await deleteDoc(doc(db, "notices", notice.id));
+                        alert("নোটিশ মুছে ফেলা হয়েছে!");
+                      }
+                    }} style={{ background: "#fee2e2", border: "1px solid #f87171", color: "#dc2626", padding: "4px 8px", borderRadius: "6px", cursor: "pointer" }}>
+                      <Trash2 size={13}/>
+                    </button>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CONTACT ── */}
+      <section className="contact-section" id="contact">
+        <div className="page-width contact-inner" style={{ position: "relative" }}>
+          {adminUser && (
+            <button onClick={() => setEditModalConfig({
+              title: "কন্টাক্ট ও অফিস ইনফরমেশন এডিট",
+              fields: [
+                { key: "email", label: "ল্যাব ইমেইল" },
+                { key: "phone", label: "ফোন / হোয়াটসঅ্যাপ নম্বর" },
+                { key: "office", label: "অফিস / রুম নং" }
+              ],
+              initialData: liveContact,
+              onSave: async (data) => {
+                setLiveContact(data);
+                await setDoc(doc(db, "settings", "lab_contact"), data, { merge: true });
+                alert("কন্টাক্ট ইনফরমেশন সেভ হয়েছে! ✓");
+              }
+            })} style={{ position: "absolute", top: "10px", right: "20px", background: "#245032", color: "#fff", border: "none", padding: "6px 14px", borderRadius: "999px", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>
+              <Edit3 size={11}/> Edit Contact Info
+            </button>
+          )}
+
+          <span className="eyebrow">CONNECT</span>
+          <h2>Questions, collaboration or research <span className="gradient-text">ideas?</span></h2>
+          <div className="contact-cards">
+            <a href={"mailto:" + liveContact.email}><Mail size={19}/><span><small>EMAIL</small><strong>{liveContact.email}</strong></span><ArrowUpRight size={16}/></a>
+            <a href={"tel:" + liveContact.phone}><Phone size={19}/><span><small>PHONE</small><strong>{liveContact.phone}</strong></span><ArrowUpRight size={16}/></a>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer className="site-footer professional-footer">
+        <div className="footer-main-grid">
+          <div className="footer-identity">
+            <a className="brand footer-brand" href="#home" onClick={closeMenu}>
+              <span className="brand-mark lab-brand-mark">
+                <img src="/Final.jpg" alt="Data Science & Biochemistry Lab" onError={(e)=>{e.currentTarget.style.display="none";}}/>
+                <Atom className="brand-fallback-icon" size={24}/>
+              </span>
+              <span className="brand-name">
+                DATA SCIENCE RESEARCH & TRAINING LAB
+                <span>JUST · INTERDISCIPLINARY COMPUTATIONAL RESEARCH</span>
+              </span>
+            </a>
+            <p className="footer-summary">Statistics, bioinformatics and computational research at Jashore University of Science and Technology.</p>
+          </div>
+          <div className="footer-column">
+            <h4>Quick Navigation</h4>
+            <div className="footer-link-list">
+              <button onClick={()=>goToPage("home")}>Home</button>
+              <button onClick={()=>goToPage("profile")}>Team & Leadership</button>
+              <button onClick={()=>goToPage("publications")}>Publications</button>
+              <button onClick={()=>goToPage("training")}>Training & IBAI</button>
+            </div>
+          </div>
+          <div className="footer-column">
+            <h4>Inquiries</h4>
+            <div className="footer-contact-items">
+              <a href={"mailto:" + liveContact.email} className="footer-contact-link"><Mail size={14}/> <span>{liveContact.email}</span></a>
+              <a href={"tel:" + liveContact.phone} className="footer-contact-link"><Phone size={14}/> <span>{liveContact.phone}</span></a>
+            </div>
+          </div>
+        </div>
+        <div className="footer-bottomline">
+          <span>© {new Date().getFullYear()} Data Science Research & Training Lab · JUST</span>
+        </div>
+      </footer>
+
+      {/* ── WIDGETS & MODALS ── */}
+      <a href="https://wa.me/8801747091195?text=Hello" target="_blank" rel="noreferrer" className="floating-whatsapp-btn" aria-label="WhatsApp">
+        <span className="whatsapp-pulse-ring"></span>💬
+      </a>
+
+      <AdminFloatingBar user={adminUser} onLogout={() => signOut(auth)} />
+      <AdminLoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} onLoginSuccess={() => {}} />
+
+      {/* INLINE EDIT MODAL */}
+      {editModalConfig && (
+        <InlineEditModal
+          isOpen={true}
+          title={editModalConfig.title}
+          fields={editModalConfig.fields}
+          initialData={editModalConfig.initialData}
+          onSave={editModalConfig.onSave}
+          onClose={() => setEditModalConfig(null)}
+        />
+      )}
+
+      {/* PUBLICATION UPLOAD MODAL */}
+      <PublicationUploadModal 
+        isOpen={showPubModal} 
+        onClose={() => setShowPubModal(false)} 
+        onSave={async (newPub) => {
+          const currentList = livePublications || publications;
+          const updated = [newPub, ...currentList];
+          setLivePublications(updated);
+          await setDoc(doc(db, "settings", "publications_data"), { list: updated }, { merge: true });
+          alert("নতুন পাবলিকেশন সফলভাবে যুক্ত হয়েছে! ✓");
+        }} 
+      />
+
+      {/* NOTICE UPLOAD MODAL */}
+      <NoticeUploadModal 
+        isOpen={showNoticeModal} 
+        onClose={() => setShowNoticeModal(false)} 
+        onSave={async (noticeData) => {
+          await addDoc(collection(db, "notices"), noticeData);
+          alert("নোটিশ সফলভাবে লাইভ পাবলিশ হয়েছে! ✓");
+        }} 
+      />
+
+      {/* TEAM MEMBER DIRECT DEVICE EDIT MODAL */}
+      {teamMemberEditConfig && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999999, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(6px)", display: "grid", placeItems: "center", padding: "20px" }} onClick={() => setTeamMemberEditConfig(null)}>
+          <div style={{ background: "#fff", borderRadius: "22px", padding: "28px", width: "100%", maxWidth: "440px", maxHeight: "90vh", overflowY: "auto", position: "relative" }} onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setTeamMemberEditConfig(null)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", cursor: "pointer" }}><X size={20}/></button>
+            <h3 style={{ margin: "0 0 16px", fontSize: "17px", fontWeight: "800", color: "#16311e" }}>✏️ {teamMemberEditConfig.title}</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <div style={{ padding: "12px", background: "#f4f8f3", border: "1px dashed #245032", borderRadius: "10px", textAlign: "center" }}>
+                <label style={{ fontSize: "12px", fontWeight: "bold", color: "#245032", display: "block", marginBottom: "6px" }}>📷 কম্পিউটার থেকে সরাসরি ছবি নির্বাচন করুন</label>
+                <input type="file" accept="image/*" onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => setTeamMemberEditConfig(prev => ({ ...prev, data: { ...prev.data, image: reader.result } }));
+                    reader.readAsDataURL(file);
+                  }
+                }} style={{ fontSize: "12px" }} />
+              </div>
+              <div><label style={{ fontSize: "12px", fontWeight: "bold" }}>নাম</label><input type="text" value={teamMemberEditConfig.data.name || ""} onChange={(e) => setTeamMemberEditConfig({ ...teamMemberEditConfig, data: { ...teamMemberEditConfig.data, name: e.target.value } })} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc" }} /></div>
+              <div><label style={{ fontSize: "12px", fontWeight: "bold" }}>পদবী</label><input type="text" value={teamMemberEditConfig.data.role || ""} onChange={(e) => setTeamMemberEditConfig({ ...teamMemberEditConfig, data: { ...teamMemberEditConfig.data, role: e.target.value } })} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc" }} /></div>
+              <div><label style={{ fontSize: "12px", fontWeight: "bold" }}>Google Scholar Link</label><input type="url" value={teamMemberEditConfig.data.scholar || ""} onChange={(e) => setTeamMemberEditConfig({ ...teamMemberEditConfig, data: { ...teamMemberEditConfig.data, scholar: e.target.value } })} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc" }} /></div>
+              <div><label style={{ fontSize: "12px", fontWeight: "bold" }}>ResearchGate Link</label><input type="url" value={teamMemberEditConfig.data.rg || ""} onChange={(e) => setTeamMemberEditConfig({ ...teamMemberEditConfig, data: { ...teamMemberEditConfig.data, rg: e.target.value } })} style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc" }} /></div>
+              <button onClick={() => {
+                if (teamMemberEditConfig.isPi) savePiData(teamMemberEditConfig.data);
+                else saveTeamMemberData(teamMemberEditConfig.data);
+                setTeamMemberEditConfig(null);
+              }} style={{ width: "100%", padding: "10px", borderRadius: "8px", background: "#245032", color: "#fff", border: "none", fontWeight: "bold", cursor: "pointer", marginTop: "8px" }}>
+                সংরক্ষণ করুন ✓
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </main>
+  );
+}
