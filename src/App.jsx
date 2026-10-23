@@ -450,6 +450,32 @@ export default function App() {
     }
   };
 
+  // ১. প্রিন্সিপাল ইনভেস্টিগেটর (PI) লাইভ ও ডাটাবেজ সেভ ফাংশন
+  const savePiData = async (updatedPi) => {
+    try {
+      setLivePi(updatedPi); // সাথে সাথে ওয়েবসাইটে লাইভ পরিবর্তন
+      await setDoc(doc(db, "settings", "pi_profile"), updatedPi, { merge: true }); // ডাটাবেজে স্থায়ী সেভ
+      alert("প্রিন্সিপাল ইনভেস্টিগেটরের প্রোফাইল ও ছবি সফলভাবে সেভ হয়েছে! ✓");
+    } catch (err) {
+      console.error(err);
+      alert("PI প্রোফাইল সংরক্ষণে সমস্যা: " + err.message);
+    }
+  };
+
+  // ২. টিম মেম্বারদের লাইভ ও ডাটাবেজ সেভ ফাংশন
+  const saveTeamMemberData = async (updatedMember) => {
+    try {
+      const updatedList = liveTeam.map((m) => (m.id === updatedMember.id ? updatedMember : m));
+      setLiveTeam(updatedList); // সাথে সাথে ওয়েবসাইটে লাইভ পরিবর্তন
+      await setDoc(doc(db, "settings", "lab_team"), { members: updatedList }, { merge: true }); // ডাটাবেজে স্থায়ী সেভ
+      alert("টিম সদস্যের তথ্য ও ছবি সফলভাবে সেভ হয়েছে! ✓");
+    } catch (err) {
+      console.error(err);
+      alert("টিম ডাটা সংরক্ষণে সমস্যা: " + err.message);
+    }
+  };
+
+
   // লেটেস্ট পেপার সেভ ফাংশন
   const saveResearchPaper = async (updatedPaper) => {
     try {
