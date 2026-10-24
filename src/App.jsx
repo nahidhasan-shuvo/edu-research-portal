@@ -589,15 +589,15 @@ export default function App() {
 
   return (
     <main data-page={page}>
-      {/* ── HEADER (লোগোর নিচের অতিরিক্ত চিহ্ন অপসারণ) ── */}
+      {/* ── HEADER ── */}
       <header className="site-header">
         <a className="brand" href="#home" onClick={closeMenu}>
           <span className="brand-mark lab-brand-mark">
             <img src="/Final.jpg" alt="Data Science & Biochemistry Lab" onError={(e) => { e.currentTarget.style.display = "none"; }} />
           </span>
           <span className="brand-name">
-            DATA SCIENCE RESEARCH & TRAINING LAB
-            <span>JUST · INTERDISCIPLINARY COMPUTATIONAL RESEARCH</span>
+            <span className="brand-title-top">DATA SCIENCE</span>
+            <span className="brand-title-bottom">RESEARCH & TRAINING LAB</span>
           </span>
         </a>
 
@@ -606,6 +606,7 @@ export default function App() {
         </button>
 
         <nav className={menuOpen ? "navigation navigation-open" : "navigation"}>
+          {/* ... বাকি সব আগের মতোই অপরিবর্তিত থাকবে ... */}
           <a className={page === "home" ? "active" : ""} href="#home" onClick={(e) => { e.preventDefault(); goToPage("home"); }}>Home</a>
           <a className={page === "profile" ? "active" : ""} href="#about" onClick={(e) => { e.preventDefault(); goToPage("profile"); }}>Profile</a>
 
